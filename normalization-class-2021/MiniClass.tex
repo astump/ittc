@@ -1,0 +1,534 @@
+\documentclass{article}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{url}
+\usepackage{proof}
+\usepackage{stmaryrd}
+\usepackage{parskip}
+\usepackage{fullpage}
+\usepackage[tocflat]{tocstyle}
+\setcounter{tocdepth}{1}
+
+\begin{document}
+
+\newcommand{\interp}[1]{\llbracket #1 \rrbracket} 
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{definition}[theorem]{Definition}
+
+\title{Mini Class on Normalization in Type Theory\\
+{\large\emph{The Iowa Type Theory Commute}}}
+
+
+\author{Aaron Stump\\
+  Computer Science \\
+  The University of Iowa}
+
+\maketitle
+
+\tableofcontents
+
+\section{Introduction}
+
+The issue of whether or not programs terminate is of significant
+theoretical and practical importance in Computer Science.  We will
+study one aspect of this topic, namely the normalization property for
+several different typed lambda calculi.  Lambda calculus is a
+minimalistic programming language, whose central feature of anonymous
+functions is now found in most mainstream languages.  We will review
+this below.  Functional programming languages like LISP, Scheme,
+Haskell, and the various forms of ML (like OCaml) are based on lambda
+calculus, with Haskell and ML using statically typed versions.
+
+Typed lambda calculus is also the core of proof assistants based on
+constructive type theory, like Coq and Agda.  To ensure logical
+soundness of the theories implemented by these tools, it is necessary
+to ensure that all programs terminate.  This is because, under the
+Curry-Howard isomorphism, proofs are identified with programs.  For
+example, proofs by induction are identified with recursive programs:
+invoking the induction hypothesis in the proof is the same as making a
+recursive call.  But then potentially diverging programs correspond to
+potentially unsound inductions, and must be banned by the system.
+Otherwise, one could prove any formula using a diverging function as
+the proof.
+
+In this short class, we will see proofs of normalization properties
+for several different type theories, namely simply typed lambda
+calculus (STLC), System F (polymorphic lambda calculus), and System
+$F_\omega$ (a generalization of System F).  These theories are
+described below.  Let us begin with some basic definitions for typed
+lambda calculi.
+
+\section{Basics of Untyped Lambda Calculus}
+
+Lambda calculus expressions are called terms.  The syntax for terms $t$
+is:
+\[
+\textit{terms}\ t\ \  ::=\ \  x\ |\ t\ t'\ |\ \lambda\ x.\, t
+\]
+\noindent Here, $x$ is for variables, $t\ t'$ is for
+\textbf{applications} of $t$ as a function to $t'$ as an argument, and
+$\lambda\ x.\, t$ is a \textbf{lambda-abstraction}, an anonymous
+function which takes input $x$ and returns output $t$.  The $\lambda$
+in $\lambda\ x.t$ is said to bind $x$ in $t$.  It introduces local
+variable $x$ within the \textbf{body} $t$ of the lambda abstraction.
+
+(Note that we are here following the common practice of introducing a
+specific family of meta-variables -- namely $t$ and variants like
+$t'$, $t_1$, etc. -- to refer to a specific set of mathematical
+objects, in this case terms.  Anywhere you see a $t$, you should
+understand that it is referring to some term as defined by the above
+syntax.)
+
+\subsection{$\beta$-reduction}
+
+To define how programs (terms) of lambda calculus run, the central
+idea is so-called $\beta$-reduction.  It says that an anonymous
+function applied to an argument can be reduced by substituting the
+argument for the bound variable in the body of the function.  This
+basic idea is expressed by defining a binary relation $\leadsto$ on
+terms by this rule:
+\[
+\infer[\beta]{(\lambda\ x.\, t)\ t'\ \leadsto\ [t'/x]t}
+                                {\ }
+\]
+\noindent $[t'/x]t$ denotes the term one gets by capture-avoiding substitution
+of $t'$ for $x$ in $t$.  Capture-avoiding means that the scoping of variables
+should not change when doing the substitution.  So substituting $x\ x$ for $y$
+in $\lambda\ x.\, y$, for example, should \underline{not} give us $\lambda x.\, (x\ x)$,
+because the scoping of $x$ in $x\ x$ is global, but would become local
+if the result were $\lambda x.\, (x\ x)$.  Instead, one may rename the bound variable
+to avoid such capture, giving a result like $\lambda y.\, (x\ x)$ instead.  It
+is actually rather tricky to get the details for substitution exactly right,
+both in theory and in practice.  We will content ourselves with the idea
+that we must rename bound variables to avoid capture (even though this means
+that strictly speaking, substitution is now not a function, since more than
+one renaming is possible).
+
+Terms which are the same if one safely (i.e., without capture) renames
+bound variables are called $\alpha$-equivalent.  
+
+Full $\beta$-reduction is the relation that allows the above
+$\beta$-reduction step to take place anywhere in a term.  Since there
+can be more than \emph{$\beta$-redex} (a term of the form
+$(\lambda\ x.\, t)\ t'$) in a term, full $\beta$-reduction is
+non-deterministic: it can happen that $t\leadsto t_1$ and $t\leadsto
+t_2$, where $t_1$ and $t_2$ are different.  If for some similar
+relation we instead have that $t_1$ always equals $t_2$ in this
+situation, then the relation is \emph{deterministic}.  We will write
+$\leadsto^*$ for the reflexive-transitive closure of $\leadsto$.  We
+have $t \leadsto^* t'$ iff there is a finite sequence of
+$\leadsto$-steps leading from $t$ to $t'$.  In other words, we allow
+$0$ or more steps of $\beta$-reduction.
+
+\subsection{Example of $\beta$-reduction}
+
+Let \textit{id} abbreviate the term $\lambda\ x.\, x$, and if $n$ is a natural number (\{0,1,\ldots\}),
+let $\dot{n}$ abbreviate
+\[
+\lambda\ s.\, \lambda\ z.\, \underbrace{(s \cdots (s}_n\ z)\cdots)
+\]
+\noindent This is the Church-encoding of number $n$.  Then for example, we have
+\[
+\dot{n}\ \textit{id} \leadsto^* \textit{id}
+\]
+\noindent This is because the whole term $\dot{n}\ \textit{id}$ itself is a $\beta$-redex
+(lambda abstraction applied to argument), which reduces to
+\[
+\lambda\ z.\, \underbrace{(\textit{id} \cdots (\textit{id}}_n\ z)\cdots)
+\]
+\noindent Reducing (sequentially) the $n$ applications of \textit{id} results in $\lambda\ z.\, z$,
+which is indeed $\alpha$-equivalent to \textit{id}.  This is an artificial example,
+but one can define the usual arithmetic operations like addition, multiplication, etc., using
+the Church encoding.
+
+\subsection{Call-by-name reduction}
+
+Functional programming languages generally do not implement full
+$\beta$-reduction for their lambda calculus fragments, but rather some
+\textbf{reduction strategy}.  This is a particular choice, for each
+term, of a subset of its $\beta$-redexes that may be reduced next.
+Below, we will show some of our normalization results for a strategy
+called \textbf{call-by-name}.  This is a form of lazy reduction, where
+we do not require arguments $t'$ to be reduced before reducing
+$(\lambda\ x., t)\ t'$.  We can define single-step call-by-name
+reduction with these inference rules:
+\[
+\begin{array}{lll}
+\infer[\beta]{(\lambda\ x.\, t)\ t'\ \leadsto\ [t'/x]t}
+      {\ }
+&\ &
+\infer[\textit{left}]{t_1\ t_2\ \leadsto\ t_1'\ t_2}
+      {t_1\ \leadsto\ t_1'}      
+\end{array}
+\]
+\noindent Rather than just stipulating, as we did for full
+$\beta$-reduction, that any redex we find can be reduced, we here
+require a finite derivation of $t\leadsto t'$ using these rules.  The
+first rule is just the $\beta$ rule again, of course.  The second,
+here called \emph{left},
+quite restricts where that $\beta$ rule can be applied.  It can only
+be applied in the left part of an application (or, using the $\beta$
+rule directly, at the top level of the term).  
+A derivation built using these two rules has a use of the $\beta$-rule at the sole leaf of tree,
+followed by some sequence of uses of the \emph{left}-rule.   Here is an example derivation:
+\[
+\infer[\textit{left}]
+      {(\lambda\ x.\, \lambda\ y.\, \lambda z.\, (y\ x))\ (\textit{id}\ \textit{id}) \ \textit{id}\ \leadsto\ 
+      (\lambda\ y.\, \lambda\ z.\, (y\ (\textit{id}\ \textit{id})))\ \textit{id}}
+      {\infer[\beta]{(\lambda\ x.\, \lambda\ y.\, \lambda z.\, (y\ x))\ (\textit{id}\ \textit{id})\ \leadsto\
+          (\lambda\ y.\, \lambda\ z.\, (y\ (\textit{id}\ \textit{id})))}{\ }}
+      \]
+\noindent This derivation proves the single reduction step (at the bottom of the derivation)
+  \[
+(\lambda\ x.\, \lambda\ y.\, \lambda z.\, (y\ x))\ (\textit{id}\ \textit{id}) \ \textit{id}\ \leadsto\ 
+(\lambda\ y.\, \lambda\ z.\, (y\ (\textit{id}\ \textit{id})))\ \textit{id} 
+\]
+\noindent We can write a call-by-name \emph{reduction sequence} beginning with this step:
+\[
+(\lambda\ x.\, \lambda\ y.\, \lambda z.\, (y\ x))\ (\textit{id}\ \textit{id}) \ \textit{id}\ \leadsto\ 
+(\lambda\ y.\, \lambda\ z.\, (y\ (\textit{id}\ \textit{id})))\ \textit{id}\ \leadsto\
+\lambda\ z.\, (\textit{id}\ (\textit{id}\ \textit{id}))
+\]
+\noindent The second reduction also has a derivation, just using the $\beta$-rule.
+The final term of the reduction sequence -- i.e.,
+$\lambda\ z.\, (\textit{id}\ (\textit{id}\ \textit{id}))$ -- is a
+\emph{normal form} with respect to call-by-name reduction: it cannot
+be reduced further with this relation.  This is because the rules do
+not allow reduction underneath a $\lambda$-abstraction or in the right
+part of an application, since the only rule for finding a
+$\beta$-redex is \textit{left}.  This term is not a normal form with
+respect to full $\beta$-reduction, however, because it has two
+$\beta$-redexes in it, namely the two applications of \textit{id}.
+This shows that normalization with call-by-name reduction might result
+in a term that has $\beta$-redexes in it, in the body of a
+$\lambda$-abstraction.  It could also happen, if one has free (undeclared)
+variables in the term, that there could be a $\beta$-redex in the right part
+of an application of a variable, as in $x\ (\textit{id}\ \textit{id})$.
+But if the term is \textbf{closed} (no occurrences of variable $x$
+except under some $\lambda$ that binds $x$), then terms which are normal
+with respect to call-by-name reduction are $\lambda$-abstractions.
+These might contain $\beta$-redexes in their bodies.
+
+Call-by-name reduction is a deterministic strategy.
+
+\section{Normalization for the Simply Typed Lambda Calculus}
+
+In this section, we will prove
+that terms that are statically typable in a particular type system
+called the Simply Typed Lambda Calculus (STLC) are normalizing with
+respect to full $\beta$-reduction.  Since $\beta$-reduction is
+nondeterministic, an important issue is whether we will prove that no
+matter which redex one chooses to reduce next, reduction reaches a
+normal form; or instead that there exists a particular choice of redex
+that guarantees reduction reaches a normal form (but where it is
+conceivable that reduction could diverge if a different strategy were
+applied).  Reduction no matter what strategy is used is called
+\textbf{strong normalization} (also \textbf{termination}), while
+reduction under some strategy (but possibly not all) is called
+\textbf{weak normalization}, or just normalization.  Here we will
+prove just weak normalization.  
+
+\subsection{Simply typing}
+
+STLC is a basic type system that one finds as a subsystem of most
+practical type systems.  It is thus of interest.  Type systems
+always come with some set of types.  The simple types $T$ are
+defined over some unspecified set of base types (in practice,
+these could be types like \verb|char| or \verb|int|):
+\begin{eqnarray*}
+\textit{base types}\ b\ &\ & \\
+\textit{simple types}\ T & ::= & b\ |\ T_1 \to T_2
+\end{eqnarray*}
+
+A type system specifies when terms can be assigned types.  For example,
+intuitively, the term \textit{id} can be assigned any type of the form $T \to T$;
+for example, $b \to b$.
+
+Type systems are usually presented using a set of inference rules
+
+\section{Call-by-name Normalization for System F}
+
+This section gives a proof that call-by-name reduction is normalizing for
+unannotated System F (polymorphic lambda calculus), and considers a
+few consequences.  System F is defined with annotated terms, where
+$\lambda$-bound variables must be declared with their types.  So we
+have $\lambda x:T.t$ instead of just $\lambda x.t$.  For metatheoretic
+analysis, I prefer to work with unannotated terms.  This system (with
+unannotated terms) is also called $\lambda2$.
+
+\section{Syntax}
+\label{sec:syntax}
+
+\[
+\begin{array}{lll}
+\textit{term variables}\ x & \ & \ \\
+\textit{type variables}\ X & \ & \ \\
+\textit{terms}\ t & ::= & x \ |\ \lambda x .t\ |\ t\ t'\\
+\textit{types}\ T & ::= & X\ |\ T \to T'\ |\ \forall X.T
+\end{array}
+\]
+
+
+\section{Typing}
+
+A typing context $\Gamma$ declares free term and type variables:
+\[
+\textit{Typing context }\Gamma ::= \cdot\ |\ \Gamma, x:T\ |\ \Gamma, X : \star
+\]
+We treat $\Gamma$ as a function, and write $\Gamma(x) = T$ to mean
+that $\Gamma$ contains a declaration $x : T$.  We will implicitly
+require that $\Gamma$ does not declare any variable $x$ twice.
+Variables can be implicitly renamed in $\lambda$-terms to make it
+possible to enforce this requirement.  The typing rules are in
+Figure~\ref{fig:tp}.  To ensure that types are well-formed, we
+use some extra rules, called \emph{kinding} rules, in Figure~\ref{fig:knd}.  
+
+\begin{figure}
+\[
+\begin{array}{lllll}
+\infer{\Gamma \vdash x : T}{\Gamma(x) = T} &\ \ \ &
+\infer{\Gamma \vdash \lambda x . t : T \to T'}{\Gamma, x : T \vdash t : T'} &\ \ \ &
+\infer{\Gamma \vdash t\ t' : T_2}{\Gamma \vdash t : T_1 \to T_2 & \Gamma \vdash t' : T_1} \\ \\
+\infer{\Gamma \vdash t : \forall X.T}{\Gamma,X : \star \vdash t : T} &\ \ \ &
+\infer{\Gamma \vdash t : [T'/X]T}{\Gamma \vdash t : \forall X.T & \Gamma \vdash T' : \star} &\ \ \ &\ 
+\end{array}
+\]
+\caption{Typing rules for unannotated System F}
+\label{fig:tp}
+\end{figure}
+
+\begin{figure}
+\[
+\begin{array}{lllll}
+\infer{\Gamma \vdash X : \star}{\Gamma(X) = \star} &\ \ \ &
+\infer{\Gamma \vdash T_1 \to T_2 : \star}{\Gamma \vdash T_1 : \star & \Gamma \vdash T_2 : \star} &\ \ \ &
+\infer{\Gamma \vdash \forall X.T : \star}{\Gamma,X : \star \vdash T : \star}
+\end{array}
+\]
+\caption{Kinding rules for unannotated System F}
+\label{fig:knd}
+\end{figure}
+
+\section{Semantics for types}
+
+Figure~\ref{fig:semtp} gives a compositional semantics
+$\interp{T}_\rho$ for types.  The function $\rho$ gives the
+interpretations of free type variables in $T$.  Each free type
+variable is interpreted as a \emph{reducibility candidate}, and write
+$\rho$ only for functions mapping type variables $X$ to reducibility
+candidates.  To define what a reducibility candidate is: let us denote
+the set of \underline{closed} terms which normalize using call-by-name
+reduction as $\mathcal{N}$.  We will write $\leadsto$ for call-by-name
+reduction. Then a reducibility candidate $R$ is a set of terms
+satisfying the following requirements:
+\begin{itemize}
+\item $R \subseteq \mathcal{N}$
+\item If $t\in R$ and $t'\leadsto t$, then $t'\in R$
+\end{itemize}
+The set of all reducibility candidates is denoted $\mathcal{R}$.
+
+\vspace{0.25cm}
+
+\begin{lemma}[$\mathcal{R}$ is a cpo]
+  The set $\mathcal{R}$ ordered by subset forms a complete partial
+  order, with greatest element $\mathcal{N}$ and greatest lower bound
+  of a nonempty set of elements of $\mathcal{R}$ given by
+  intersection.
+\end{lemma}
+
+\vspace{0.25cm}
+
+\begin{proof}
+  $\mathcal{N}$ satisfies both requirements for a reducibility
+  candidate, and since one of those requirements is being a subset of
+  $\mathcal{N}$, it is clearly the largest such set to do so.  Let us
+  prove that the intersection of a nonempty set $S$ of reducibility
+  candidates is still a reducibility candidate.  Certainly if the
+  members of $S$ are subsets of $\mathcal{N}$ then so is $\bigcap S$.
+  For the second property: assume an arbitrary $t\in\bigcap S$ with
+  $t'\leadsto t$, and show $t'\in\bigcap S$.  For the latter, it
+  suffices to show $t'\in R$ for every $R\in S$.  Consider an
+  arbitrary such $R$.  From $t\in\bigcap S$ and $R \in S$, we have
+  $t\in R$.  Then since $R$ is a reducibility candidate, $t \in R$ and
+  $t'\leadsto t$ implies $t'\in R$, .
+\end{proof}
+
+\begin{figure}
+\[
+\begin{array}{lll}
+\interp{X}_\rho & = & \rho(X) \\ \\
+\interp{T_1 \to T_2}_\rho & = & \{ t \in \mathcal{N}\ |\ \forall t'\in\interp{T_1}_\rho.\ t\ t'\in\interp{T_2}_\rho \} \\ \\
+\interp{\forall X.T}_\rho & = & \bigcap_{R\in\mathcal{R}} \interp{T}_{\rho[X\mapsto R]} 
+\end{array}
+\]
+\caption{Reducibility semantics for types}
+\label{fig:semtp}
+\end{figure}
+
+\begin{lemma}[The semantics of types computes reducibility candidates]
+\label{lem:semred}
+  If $\rho(X)$ is defined for every free type variable of $T$, then
+  $\interp{T}_\rho \in \mathcal{R}$.
+\end{lemma}
+\begin{proof}
+  The proof is by induction on the structure of the type.  If $T$ is a
+  type variable $X$, then by assumption, $\rho(X)$ is a reducibility
+  candidate, and this is the value of $\interp{T}_\rho$.
+
+  If $T$ is an arrow type $T_1 \to T_2$, we must prove the two
+  properties listed above for being a reducibility candidate.
+  Certainly $\interp{T}_\rho\subseteq\mathcal{N}$, because the
+  semantics of arrow types requires this explicitly.  Now suppose that
+  $t\in\interp{T_1\to T_2}_\rho$ and $t'\leadsto t$.  We must show
+  $t'\in\interp{T_1\to T_2}_\rho$.  Since $t$ is normalizing and
+  $t'\leadsto t$, we know that $t'$ is also normalizing (there is a
+  reduction sequence from $t'$ to $t$ and from $t$ to a normal form).
+  So let us assume an arbitrary $t''\in\interp{T_1}_\rho$, and show
+  that $t'\ t''\in\interp{T_2}_\rho$.  Since $t' \leadsto t$, by the
+  definition of call-by-name reduction, we have
+\[
+t'\ t'' \leadsto t\ t''
+\]
+Since $t\in\interp{T_1\to T_2}_\rho$, we know by the semantics of
+types that $t\ t''\in\interp{T_2}_\rho$, since
+$t''\in\interp{T_1}_\rho$.  By the IH, $\interp{T_2}_\rho$ is a
+reducibility candidate.  So since $t'\ t''\leadsto t\ t''$ and $t\
+t''\in\interp{T_2}_\rho$, we also have $t'\ t''\in\interp{T_2}_\rho$.
+This was all we had to prove in this case.
+
+Finally, if $T$ is a universal type $\forall X.T'$, then by IH, the
+set $\interp{T'}_{\rho[X\mapsto R]}$ is a reducibility candidate for
+all $R\in\mathcal{R}$.  Since $\mathcal{R}$ is a complete partial
+order, $\bigcap_{R\in\mathcal{R}}\interp{T'}_{\rho[X\mapsto R]}$ is
+then also a reducibility candidate.
+
+\end{proof}
+
+\section{Soundness of Typing Rules}
+
+The goal of this section is to prove that terms which can be assigned
+a type using the rules of Figure~\ref{fig:tp} are normalizing.  We
+will actually prove a stronger statement, based on an interpretation
+of typing judgments.  First, we must define an interpretation
+$\interp{\Gamma}$ for typing contexts $\Gamma$.  This interpretation
+will be a set of pairs $(\sigma,\rho)$, where $\rho$ is, as above, a
+function mapping type variables to reducibility candidates; and
+$\sigma$ maps term variables to terms.  The definition is by recursion
+on the structure of $\Gamma$:
+\[
+\begin{array}{lll}
+(\sigma,\rho)\in\interp{x:T,\Gamma} & \Leftrightarrow & \sigma(x)\in\interp{T}_\rho \ \wedge\ (\sigma,\rho)\in\interp{\Gamma} \\
+(\sigma,\rho)\in\interp{X:*,\Gamma} & \Leftrightarrow & \rho(x)\in\mathcal{R}\ \wedge\ (\sigma,\rho)\in\interp{\Gamma} \\
+(\sigma,\rho)\in\interp{\cdot}
+\end{array}
+\]
+In the statement of the theorem below, we write $\sigma t$ to mean the
+result of simultaneously substituting $\sigma(x)$ for $x$ in $t$, for
+all $x$ in the domain of $\sigma$.
+
+\vspace{0.25cm}
+\begin{lemma}
+\label{lem:ctxtext}
+  Suppose $(\sigma,\rho)\in\interp{\Gamma}$.  If
+  $t\in\interp{T}_\rho$, then $(\sigma[x\mapsto
+  t],\rho)\in\interp{\Gamma,x:T}$.  Also, if $R\in\mathcal{R}$, then
+  $(\sigma,\rho[x\mapsto R])\in\interp{\Gamma,X:*}$.
+\end{lemma}
+\begin{proof}
+  The proof of the first part is by induction on $\Gamma$. If $\Gamma
+  = \cdot$, then to show $(\sigma[x\mapsto
+  t],\rho)\in\interp{\cdot,x:T}$, it suffices to show
+  $t\in\interp{T}_\rho$, which holds by assumption.  If $\Gamma =
+  y:T',\Gamma'$, then we have $(\sigma,\rho)\in\interp{\Gamma'}$ by
+  the definition of $\interp{\Gamma}$, and we may apply the IH to
+  conclude $(\sigma[x\mapsto t],\rho)\in\interp{\Gamma',x:T}$, from
+  which we can conclude the desired $(\sigma[x\mapsto
+  t],\rho)\in\interp{\Gamma,x:T}$, again by the definition of
+  $\interp{\Gamma}$.  Similar reasoning applies if $\Gamma =
+  X:\star,\Gamma'$.  The proof of the second part of the lemma
+  is exactly analogous.
+\end{proof}
+
+
+\begin{theorem}[Soundness of typing rules with respect to the semantics]
+If $\Gamma\vdash t : T$, then for all $(\sigma,\rho)\in\interp{\Gamma}$, we have $\sigma t \in\interp{T}_\rho$.
+\end{theorem}
+\begin{proof}
+The proof is by induction on the structure of the assumed typing derivation.
+In each case, we will implicitly assume an arbitrary $(\sigma,\rho)\in\interp{\Gamma}$.
+
+\underline{Case:}
+\[
+\infer{\Gamma \vdash x : T}{\Gamma(x) = T}
+\]
+We proceed by inner induction on $\Gamma$.  If $\Gamma$ is empty, then
+$\Gamma(x) = T$ is false, and this case cannot arise.  Suppose
+$\Gamma$ is of the form $x:T, \Gamma'$.  Then
+$\sigma(x)\in\interp{T}_\rho$ by definition of $\interp{\Gamma}$,
+which suffices to prove the conclusion.  Suppose $\Gamma$ is of the
+form $y:T, \Gamma'$, where $y\neq x$, or of the form $X:*,\Gamma'$.
+Then $\Gamma'(x) = T$ and $(\sigma,\rho)\in\interp{\Gamma'}$, and we
+use the induction hypothesis to conclude $\sigma x\in\interp{T}_\rho$.
+
+\underline{Case:}
+\[
+\infer{\Gamma \vdash \lambda x . t : T \to T')}{\Gamma, x : T \vdash t : T'} 
+\]
+To prove $(\lambda x.\sigma t) \in \interp{T\to T'}_\rho$, it suffices
+to assume an abitrary $t'\in\interp{T}_\rho$ and prove $(\lambda
+x.\sigma t)\ t'\in\interp{T'}_\rho$.  Since $\interp{T'}_\rho$ is a
+reducibility candidate, it suffices to prove $[t'/x]\sigma
+t\in\interp{T'}_\rho$, since $(\lambda x.\sigma t)\ t' \leadsto
+[t'/x](\sigma t)$.  But if we let $\sigma'=\sigma[x\mapsto t']$, then
+we have $(\sigma',\rho)\in\interp{\Gamma,x:T}$ by
+Lemma~\ref{lem:ctxtext}, so we may apply the IH to conclude $\sigma'
+t\in\interp{T'}_\rho$, as required.
+
+\underline{Case:}
+\[
+\infer{\Gamma \vdash t\ t' : T_2}{\Gamma \vdash t : T_1 \to T_2 & \Gamma \vdash t' : T_1} 
+\]
+By the IH, $\sigma t\in\interp{T_1 \to T_2}_\rho$ and $\sigma
+t'\in\interp{T_1}_\rho$.  By the semantics of arrow types, this
+immediately implies $(\sigma t)\ (\sigma t')\in\interp{T_2}_\rho$, as
+required.
+
+\underline{Case:}
+\[
+\infer{\Gamma \vdash t : \forall X.T}{\Gamma,X : \star \vdash t : T} 
+\]
+We must prove $\sigma t\in\interp{\forall X.T}_\rho$.  By the
+semantics of universal types, it suffices to assume an arbitrary
+$R\in\mathcal{R}$, and prove $\sigma t\in\interp{T}_{\rho[X\mapsto
+  R]}$.  But this follows by the IH, which we can apply because
+$(\sigma,\rho[X\mapsto R])\in\interp{\Gamma, X:\star}$, by
+Lemma~\ref{lem:ctxtext}.
+
+\underline{Case:}
+\[
+\infer{\Gamma \vdash t : [T'/X]T}{\Gamma \vdash t : \forall X.T & \Gamma \vdash T' : \star} 
+\]
+By the IH, we know $\sigma t\in\interp{\forall X.T}_\rho$, which by the semantics
+of universal types is equivalent to
+\begin{equation}
+\label{eq1}
+\sigma t \in \bigcap_{R\in\mathcal{R}} T_{\rho[X\mapsto R]}
+\end{equation}
+Since $(\sigma,\rho)\in\interp{\Gamma}$, we may easily observe that
+$\rho$ is defined for all the free type variables of $T'$.  So by
+Lemma~\ref{lem:semred}, $\interp{T'}_\rho\in\mathcal{R}$.  From the
+displayed formula above (\ref{eq1}), we can conclude $\sigma t\in
+\interp{T}_{\rho[X\mapsto \interp{T'}_\rho]}$.  Now we must apply the
+following lemma, whose easy proof by induction on $T$ we omit, to
+conclude $\sigma t\in\interp{[T'/X]T}_\rho$.
+\begin{lemma}
+$\interp{[T'/X]T}_\rho = \interp{T}_{\rho[X\mapsto T']}$
+\end{lemma}
+
+\end{proof}
+
+%\bibliographystyle{plain}
+%\bibliography{main}
+
+\end{document}
