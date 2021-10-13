@@ -4,10 +4,28 @@
 \usepackage{url}
 \usepackage{proof}
 \usepackage{stmaryrd}
+\usepackage{mathabx}
 \usepackage{parskip}
 \usepackage{fullpage}
 \usepackage[tocflat]{tocstyle}
-\setcounter{tocdepth}{1}
+\setcounter{tocdepth}{2}
+
+\providecommand{\betarule}[0]{\infer[\beta]{(\lambda\,x.\, t)\ t'\ \leadsto\ [t'/x]t}
+                                {\ }}
+\providecommand{\lamrule}[0]{\infer[\textit{lam}]{\lambda\,x.\, t\ \leadsto\ \lambda\,x.\, t'}
+                               {t\ \leadsto\ t'}}
+\providecommand{\apparule}[0]{\infer[\textit{app1}]{(t_1\ t_2)\ \leadsto\ (t_1'\ t_2)}
+                                {t_1\ \leadsto\ t_1'}}
+\providecommand{\appbrule}[0]{\infer[\textit{app2}]{(t_1\ t_2)\ \leadsto\ (t_1\ t_2')}
+                                {t_2\ \leadsto\ t_2'}}
+
+\usepackage[pdftex,
+	pdfauthor={Aaron Stump},
+	pdftitle={ITTC Class on Normalization},
+	linktocpage,
+	urlcolor={black},
+	linkcolor={black},
+        citecolor={black}]{hyperref}
 
 \begin{document}
 
@@ -15,6 +33,7 @@
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{definition}[theorem]{Definition}
+\newtheorem{corollary}[theorem]{Corollary}
 
 \title{Mini Class on Normalization in Type Theory\\
 {\large\emph{The Iowa Type Theory Commute}}}
@@ -64,13 +83,13 @@ lambda calculi.
 Lambda calculus expressions are called terms.  The syntax for terms $t$
 is:
 \[
-\textit{terms}\ t\ \  ::=\ \  x\ |\ t\ t'\ |\ \lambda\ x.\, t
+\textit{terms}\ t\ \  ::=\ \  x\ |\ t\ t'\ |\ \lambda\,x.\, t
 \]
 \noindent Here, $x$ is for variables, $t\ t'$ is for
 \textbf{applications} of $t$ as a function to $t'$ as an argument, and
-$\lambda\ x.\, t$ is a \textbf{lambda-abstraction}, an anonymous
+$\lambda\,x.\, t$ is a \textbf{lambda-abstraction}, an anonymous
 function which takes input $x$ and returns output $t$.  The $\lambda$
-in $\lambda\ x.t$ is said to bind $x$ in $t$.  It introduces local
+in $\lambda\,x.t$ is said to bind $x$ in $t$.  It introduces local
 variable $x$ within the \textbf{body} $t$ of the lambda abstraction.
 
 (Note that we are here following the common practice of introducing a
@@ -89,13 +108,13 @@ argument for the bound variable in the body of the function.  This
 basic idea is expressed by defining a binary relation $\leadsto$ on
 terms by this rule:
 \[
-\infer[\beta]{(\lambda\ x.\, t)\ t'\ \leadsto\ [t'/x]t}
+\infer[\beta]{(\lambda\,x.\, t)\ t'\ \leadsto\ [t'/x]t}
                                 {\ }
 \]
 \noindent $[t'/x]t$ denotes the term one gets by capture-avoiding substitution
 of $t'$ for $x$ in $t$.  Capture-avoiding means that the scoping of variables
 should not change when doing the substitution.  So substituting $x\ x$ for $y$
-in $\lambda\ x.\, y$, for example, should \underline{not} give us $\lambda x.\, (x\ x)$,
+in $\lambda\,x.\, y$, for example, should \underline{not} give us $\lambda x.\, (x\ x)$,
 because the scoping of $x$ in $x\ x$ is global, but would become local
 if the result were $\lambda x.\, (x\ x)$.  Instead, one may rename the bound variable
 to avoid such capture, giving a result like $\lambda y.\, (x\ x)$ instead.  It
@@ -111,7 +130,7 @@ bound variables are called $\alpha$-equivalent.
 Full $\beta$-reduction is the relation that allows the above
 $\beta$-reduction step to take place anywhere in a term.  Since there
 can be more than \emph{$\beta$-redex} (a term of the form
-$(\lambda\ x.\, t)\ t'$) in a term, full $\beta$-reduction is
+$(\lambda\,x.\, t)\ t'$) in a term, full $\beta$-reduction is
 non-deterministic: it can happen that $t\leadsto t_1$ and $t\leadsto
 t_2$, where $t_1$ and $t_2$ are different.  If for some similar
 relation we instead have that $t_1$ always equals $t_2$ in this
@@ -121,12 +140,44 @@ have $t \leadsto^* t'$ iff there is a finite sequence of
 $\leadsto$-steps leading from $t$ to $t'$.  In other words, we allow
 $0$ or more steps of $\beta$-reduction.
 
+The relation of full $\beta$-reduction may be defined using the rules
+of Figure~\ref{fig:fullbeta}.  Here is an example derivation using the
+rules above to show that $\lambda x. x\ ((\lambda z.z\ z)\ x)$ reduces
+to $\lambda x. x\ (x\ x)$.
+\[
+\infer[\textit{lam}]{\lambda\, x.\, (x\ ((\lambda z.z\ z)\ x))\ \leadsto\ \lambda\, x.\, (x\ (x\ x))}
+      {\infer[\textit{app2}]{x\ ((\lambda\, z.\,(z\ z))\ x)\ \leadsto\ x\ (x\ x)}
+       {\infer[\beta]{(\lambda\, z.\,(z\ z))\ x\ \leadsto x\ x}{\ }}}
+\]
+\noindent Generally, derivations are trees labeled by judgments of some kind (facts
+to be proved by the rules).  The leaves are drawn at the top, and the root at the
+bottom.  Edges between tree nodes are indicated with horizontal lines, showing
+that an inference has been made using a particular rule.  Axioms are rules that
+have no premises, and hence may be placed used at the leaves.
+  
+\begin{figure}
+\[
+\begin{array}{ll}
+\betarule
+&
+\lamrule
+\\ \\
+\apparule
+&
+\appbrule
+\end{array}
+\]
+\caption{Rules defining full $\beta$-reduction}
+\label{fig:fullbeta}
+\end{figure}
+
+
 \subsection{Example of $\beta$-reduction}
 
-Let \textit{id} abbreviate the term $\lambda\ x.\, x$, and if $n$ is a natural number (\{0,1,\ldots\}),
+Let \textit{id} abbreviate the term $\lambda\,x.\, x$, and if $n$ is a natural number (\{0,1,\ldots\}),
 let $\dot{n}$ abbreviate
 \[
-\lambda\ s.\, \lambda\ z.\, \underbrace{(s \cdots (s}_n\ z)\cdots)
+\lambda\,s.\, \lambda\,z.\, \underbrace{(s \cdots (s}_n\ z)\cdots)
 \]
 \noindent This is the Church-encoding of number $n$.  Then for example, we have
 \[
@@ -135,9 +186,9 @@ let $\dot{n}$ abbreviate
 \noindent This is because the whole term $\dot{n}\ \textit{id}$ itself is a $\beta$-redex
 (lambda abstraction applied to argument), which reduces to
 \[
-\lambda\ z.\, \underbrace{(\textit{id} \cdots (\textit{id}}_n\ z)\cdots)
+\lambda\,z.\, \underbrace{(\textit{id} \cdots (\textit{id}}_n\ z)\cdots)
 \]
-\noindent Reducing (sequentially) the $n$ applications of \textit{id} results in $\lambda\ z.\, z$,
+\noindent Reducing (sequentially) the $n$ applications of \textit{id} results in $\lambda\,z.\, z$,
 which is indeed $\alpha$-equivalent to \textit{id}.  This is an artificial example,
 but one can define the usual arithmetic operations like addition, multiplication, etc., using
 the Church encoding.
@@ -151,11 +202,11 @@ term, of a subset of its $\beta$-redexes that may be reduced next.
 Below, we will show some of our normalization results for a strategy
 called \textbf{call-by-name}.  This is a form of lazy reduction, where
 we do not require arguments $t'$ to be reduced before reducing
-$(\lambda\ x., t)\ t'$.  We can define single-step call-by-name
+$(\lambda\,x., t)\ t'$.  We can define single-step call-by-name
 reduction with these inference rules:
 \[
 \begin{array}{lll}
-\infer[\beta]{(\lambda\ x.\, t)\ t'\ \leadsto\ [t'/x]t}
+\infer[\beta]{(\lambda\,x.\, t)\ t'\ \leadsto\ [t'/x]t}
       {\ }
 &\ &
 \infer[\textit{left}]{t_1\ t_2\ \leadsto\ t_1'\ t_2}
@@ -174,25 +225,25 @@ A derivation built using these two rules has a use of the $\beta$-rule at the so
 followed by some sequence of uses of the \emph{left}-rule.   Here is an example derivation:
 \[
 \infer[\textit{left}]
-      {(\lambda\ x.\, \lambda\ y.\, \lambda z.\, (y\ x))\ (\textit{id}\ \textit{id}) \ \textit{id}\ \leadsto\ 
-      (\lambda\ y.\, \lambda\ z.\, (y\ (\textit{id}\ \textit{id})))\ \textit{id}}
-      {\infer[\beta]{(\lambda\ x.\, \lambda\ y.\, \lambda z.\, (y\ x))\ (\textit{id}\ \textit{id})\ \leadsto\
-          (\lambda\ y.\, \lambda\ z.\, (y\ (\textit{id}\ \textit{id})))}{\ }}
+      {(\lambda\,x.\, \lambda\,y.\, \lambda z.\, (y\ x))\ (\textit{id}\ \textit{id}) \ \textit{id}\ \leadsto\ 
+      (\lambda\,y.\, \lambda\,z.\, (y\ (\textit{id}\ \textit{id})))\ \textit{id}}
+      {\infer[\beta]{(\lambda\,x.\, \lambda\,y.\, \lambda z.\, (y\ x))\ (\textit{id}\ \textit{id})\ \leadsto\
+          (\lambda\,y.\, \lambda\,z.\, (y\ (\textit{id}\ \textit{id})))}{\ }}
       \]
 \noindent This derivation proves the single reduction step (at the bottom of the derivation)
   \[
-(\lambda\ x.\, \lambda\ y.\, \lambda z.\, (y\ x))\ (\textit{id}\ \textit{id}) \ \textit{id}\ \leadsto\ 
-(\lambda\ y.\, \lambda\ z.\, (y\ (\textit{id}\ \textit{id})))\ \textit{id} 
+(\lambda\,x.\, \lambda\,y.\, \lambda z.\, (y\ x))\ (\textit{id}\ \textit{id}) \ \textit{id}\ \leadsto\ 
+(\lambda\,y.\, \lambda\,z.\, (y\ (\textit{id}\ \textit{id})))\ \textit{id} 
 \]
 \noindent We can write a call-by-name \emph{reduction sequence} beginning with this step:
 \[
-(\lambda\ x.\, \lambda\ y.\, \lambda z.\, (y\ x))\ (\textit{id}\ \textit{id}) \ \textit{id}\ \leadsto\ 
-(\lambda\ y.\, \lambda\ z.\, (y\ (\textit{id}\ \textit{id})))\ \textit{id}\ \leadsto\
-\lambda\ z.\, (\textit{id}\ (\textit{id}\ \textit{id}))
+(\lambda\,x.\, \lambda\,y.\, \lambda z.\, (y\ x))\ (\textit{id}\ \textit{id}) \ \textit{id}\ \leadsto\ 
+(\lambda\,y.\, \lambda\,z.\, (y\ (\textit{id}\ \textit{id})))\ \textit{id}\ \leadsto\
+\lambda\,z.\, (\textit{id}\ (\textit{id}\ \textit{id}))
 \]
 \noindent The second reduction also has a derivation, just using the $\beta$-rule.
 The final term of the reduction sequence -- i.e.,
-$\lambda\ z.\, (\textit{id}\ (\textit{id}\ \textit{id}))$ -- is a
+$\lambda\,z.\, (\textit{id}\ (\textit{id}\ \textit{id}))$ -- is a
 \emph{normal form} with respect to call-by-name reduction: it cannot
 be reduced further with this relation.  This is because the rules do
 not allow reduction underneath a $\lambda$-abstraction or in the right
@@ -212,52 +263,335 @@ These might contain $\beta$-redexes in their bodies.
 
 Call-by-name reduction is a deterministic strategy.
 
-\section{Normalization for the Simply Typed Lambda Calculus}
+\subsection{The Simply Typed Lambda Calculus}
 
-In this section, we will prove
-that terms that are statically typable in a particular type system
-called the Simply Typed Lambda Calculus (STLC) are normalizing with
-respect to full $\beta$-reduction.  Since $\beta$-reduction is
-nondeterministic, an important issue is whether we will prove that no
-matter which redex one chooses to reduce next, reduction reaches a
-normal form; or instead that there exists a particular choice of redex
-that guarantees reduction reaches a normal form (but where it is
-conceivable that reduction could diverge if a different strategy were
-applied).  Reduction no matter what strategy is used is called
-\textbf{strong normalization} (also \textbf{termination}), while
-reduction under some strategy (but possibly not all) is called
-\textbf{weak normalization}, or just normalization.  Here we will
-prove just weak normalization.  
-
-\subsection{Simply typing}
-
-STLC is a basic type system that one finds as a subsystem of most
-practical type systems.  It is thus of interest.  Type systems
-always come with some set of types.  The simple types $T$ are
-defined over some unspecified set of base types (in practice,
-these could be types like \verb|char| or \verb|int|):
+The Simply Typed Lambda Calculus (STLC) is a basic type system that
+one finds as a subsystem of most practical type systems.  It is thus
+of interest.  Type systems always come with some set of types.  The
+simple types $T$ are defined over some unspecified set of base types
+(in practice, these could be types like \verb|char| or \verb|int|):
 \begin{eqnarray*}
 \textit{base types}\ b\ &\ & \\
 \textit{simple types}\ T & ::= & b\ |\ T_1 \to T_2
 \end{eqnarray*}
 
-A type system specifies when terms can be assigned types.  For example,
-intuitively, the term \textit{id} can be assigned any type of the form $T \to T$;
-for example, $b \to b$.
+In these notes, we use a Curry-style approach to typing, where the
+type system specifies assignments of types to unannotated terms of
+pure $\lambda$-calculus.  For example, intuitively, the term
+\textit{id} can be assigned any type of the form $T \to T$; for
+example, $b \to b$.  Church-style typing is more common, where terms
+are annotated with types -- most commonly, for $\lambda$-bound
+variables -- and these annotations are treated as essential parts of
+the term.  It is perfectly reasonable to use annotations with
+Curry-style typing, as hints to guide the type checker in applying the
+typing rules, which might be nondeterministically applicable.  For
+theoretical study, though, it is generally more convenient to disregard
+the question of interpreting typing rules as a description of a typing
+algorithm, and instead just view them as defining a mathematical relation
+of typing between terms and types.
 
-Type systems are usually presented using a set of inference rules
+Actually, there is usually a third component for a typing judgment (that is,
+a statement of typing that is to be derived using the typing rules).  This
+is the \emph{typing context}, which is a list of assumptions of types for
+variables:
+\begin{eqnarray*}
+\textit{typing contexts}\ \Gamma & ::= & \cdot\ |\ \Gamma, x : T
+\end{eqnarray*}
+
+\noindent The empty context, which declares types for no variables, is
+written $\cdot$.  If $\Gamma$ is a context, then adding an assumption
+that term variable $x$ has type $T$ is denoted $\Gamma,x : T$.  The
+type-assignment rules for STLC are shown in Figure~\ref{fig:stlc}.  In
+the first rule, for typing variables, the notation $\Gamma(x) = T$ is
+used to mean that the result of looking up the first type for variable
+$x$ in context $\Gamma$, starting from the right, is $T$.  
+
+An example typing derivation is given in Figure~\ref{fig:stlcex}.  It
+shows that in the empty context, $\lambda\,x.\,\lambda\,y.\,(x\ y)$
+can be assigned the type $(T_1\to T_2)\to (T_1\to T_2)$, for any types
+$T_1$ and $T_2$.
+
+\begin{figure}
+\[
+\begin{array}{lll}
+\infer{\Gamma\vdash x : T}{\Gamma(x) = T} 
+
+&
+
+\infer{\Gamma\vdash \lambda\,x.\,t : T_1 \to T_2}
+      {\Gamma,x:T_1\vdash t:T_2}
+
+&
+
+\infer{\Gamma\vdash t_1\ t_2 : T_1}
+      {\Gamma\vdash t_1 : T_2 \to T_1 &
+       \Gamma\vdash t_2 : T_2}
+
+\end{array}
+\]
+\caption{Type-assignment rules for simply typed lambda calculus}
+\label{fig:stlc}
+\end{figure}
+
+
+\begin{figure}
+\[
+\infer{\cdot \vdash \lambda\,x.\, \lambda\,y.\,(x\ y) : (T_1\to T_2)\to
+(T_1\to T_2)}
+      {\infer{x:T_1 \to T_2 \vdash \lambda\,y.\,(x\ y) : T_1\to T_2}
+             {\infer{x:T_1 \to T_2, y:T_1 \vdash (x\ y) : T_2}
+                    {\infer{x:T_1 \to T_2, y:T_1 \vdash x : T_1 \to T_2}{\ } &
+                     \infer{x:T_1 \to T_2, y:T_1 \vdash y : T_1}{\ }}}}
+\]
+\caption{Example typing derivation in STLC}
+\label{fig:stlcex}
+\end{figure}
+
+\section{Normalization for the Simply Typed Lambda Calculus}
+
+In this section, we will prove that terms that are statically typable
+in a particular type system called the Simply Typed Lambda Calculus
+(STLC) are normalizing with respect to full $\beta$-reduction.  Since
+$\beta$-reduction is nondeterministic, an important issue is whether
+we will prove that no matter which redex one chooses to reduce next,
+reduction reaches a normal form; or instead that there exists a
+particular choice of redex that guarantees reduction reaches a normal
+form (but where it is conceivable that reduction could diverge if a
+different strategy were applied).  Reduction no matter what strategy
+is used is called \textbf{strong normalization} (also
+\textbf{termination}), while reduction under some strategy (but
+possibly not all) is called \textbf{weak normalization}, or just
+normalization.  Here we will prove just weak normalization.
+
+Quite a simple -- and to me, appealing -- proof of normalization for
+terms typable in STLC can be given using a well-founded ordering
+invented by Dershowitz and Manna~\cite{dm79}.  The idea of the
+normalization proof is to define, for each typing derivation, a
+certain measure.  This measure will be a multiset of types, one for
+each redex we find in the typing derivation.  Then we will see a
+particular reduction strategy (choice of next redex to reduce) that
+always causes this measure to decrease in the Dershowitz-Manna
+ordering.  The ordering is well-founded, which means that one cannot
+decrease forever.  So eventually we will reach a minimal multiset of
+types.  In this case, the minimal multiset will be the empty one, as
+all redexes will have been reduced.
+
+There are several ingredients to this proof, which we consider in turn.
+
+\subsection{A measure of a typing derivation}
+
+Suppose $\mathcal{D}$ is a typing derivation for judgment $\Gamma\vdash t : T$.  Then
+define a measure $\mu(\mathcal{D})$ to be the multiset of types $T_2 \to T_1$ which occur in an
+inference of the following form in $\mathcal{D}$:
+
+\[ 
+\infer{\Gamma \vdash (\lambda x.t)\ t' : T_1}
+       {\infer{\Gamma \vdash (\lambda x.t) : T_2\to T_1}
+              {\Gamma, x : T_2 \vdash t : T_1} & \Gamma \vdash t' : T_2}
+\]
+\noindent This inference is typing a $\beta$-redex $(\lambda x.t)\ t'$ by
+typing the $\lambda$-abstraction at type $T_2\to T_1$.  For all such
+typings of $\beta$-redexes in $\mathcal{D}$, the multiset $\mu(\mathcal{D})$
+contains the type $T_2 \to T_1$.  Let us call such a type a \emph{redex type}
+of $\mathcal{D}$.
+
+For example, consider this typing derivation $\mathcal{D}$ for the term $\lambda\,x.\,(\textit{id}\ (\textit{id})\ x)$:
+\[
+\infer{\cdot\vdash \lambda\,x.\,(\textit{id}\ (\textit{id})\ x) : b \to b}
+      {\infer{\cdot, x : b \vdash (\textit{id}\ (\textit{id})\ x) : b}
+        {\infer{\cdot, x : b \vdash \textit{id} : \mathbf{b \to b}}{\infer{\cdot, x : b , x : b \vdash x : b}{\ }} &
+          \infer{\cdot , x : b \vdash \textit{id}\ x : b}
+                {\infer{\cdot, x : b \vdash \textit{id} : \mathbf{b \to b}}{\infer{\cdot, x : b , x : b \vdash x : b}{\ }} &
+                  \infer{\cdot, x : b \vdash x : b}{\ }}}}
+\]
+\noindent The multiset $\mu(\mathcal{D})$ is $\{ b \to b, b \to b \}$,
+because those types are included in the multiset at the bolded points
+in the derivation.  (Recall that a multiset is like a set except that multiplicity
+is taken into account.)  Let us say that we are just ordering types by their
+size.
+
+\subsection{The Dershowitz-Manna multiset ordering}
+
+Dershowitz and Manna defined a very useful and influential ordering on finite multisets of elements of type $A$, extending
+a strict partial order (transitive and irreflexive) on $A$~\cite{dm79}.  The definition is that a finite multiset $M$ is
+greater than $M'$ (notation $M \ggcurly M'$) iff there are finite multisets $X$ and $Y$ such that
+\[
+M' = (M - X) \cup Y
+\]
+\noindent and further, for all $y\in Y$, there is some $x \in X$ such that $x > y$.  Dershowitz and Manna prove that this
+is a strict partial order, and that it is well-founded iff the ordering on $A$ is.
+
+For example, suppose that $A$ is the set of natural numbers, and we use the usual decreasing ordering on those.  Then
+a multiset like $\{ 5, 5, 3 , 1 , 1 \}$ is greater than $\{ 4 , 4 , 4 , 4 , 5 , 3 , 1 , 0 , 0 , 0 \}$.  Here, the
+multiset $X$ is $\{ 5, 1 \}$ and the multiset $Y$ is $\{ 4 , 4 , 4 , 4 , 0 , 0 , 0 \}$.  For every element of $Y$,
+there is indeed a greater element of $X$.  The power of the ordering comes from the fact that there may be (finitely) many
+elements of $Y$ dominated by a single element of $X$.  
+
+\subsection{Type preservation: reduction preserves typing}
+
+Our measure is going to be defined on typing derivations, but reduction
+operates on terms of pure $\lambda$-calculus.  We must prove that we can
+keep typing and reduction in synch: whenever we have $t \leadsto t'$ and
+$\Gamma \vdash t : T$, then we also have $\Gamma \vdash t' : T$.  This
+property is called \emph{type preservation}.
+
+\vspace{.25cm}
+\begin{theorem}[Type Preservation]
+\label{thm:tppres}
+If $\Gamma\vdash t : T$ and $t \leadsto t'$, then $\Gamma\vdash t' : T$.
+\end{theorem}
+
+This is a straightforward and intuitive property, which one generally
+expects to hold for most type systems.  The proof is given in Section~\ref{sec:tppres}
+in the Appendix.  The proof makes use of the following lemma, also proved in the Appendix:
+
+\vspace{.25cm}
+\begin{lemma}[Substitution]
+\label{lem:stlcsubst}
+If $\Gamma, x:T_2 \vdash t : T_1$ and $\Gamma \vdash t' : T_2$, then
+$\Gamma \vdash [t'/x]t : T_1$.
+\end{lemma}
+
+\noindent This lemma says that substituting a term of type $T_2$ for a variable that
+is assumed to have type $T_2$ preserves typing (while eliminating that
+variable from the typing context).  This plays a crucial role in the next section.
+  
+\subsection{A reduction strategy that reduces the measure}
+\label{sec:mudec}
+
+The transformation implicit in the (constructive) proof of Theorem~\ref{thm:tppres}
+could change the measure of a typing derivation only in the following situation.  The
+proof of $t \leadsto t'$ ends in
+\[ 
+\betarule
+\]
+\noindent and the typing derivation ends in:
+\begin{equation} 
+\infer{\Gamma \vdash (\lambda x.t)\ t' : T_1}
+       {\infer{\Gamma \vdash (\lambda x.t) : T_2\to T_1}
+              {\Gamma, x : T_2 \vdash t : T_1} & \Gamma \vdash t' : T_2}
+\tag{A}
+\end{equation}
+\noindent In this case, the proof of Theorem~\ref{thm:tppres} says
+to transform this derivation into
+\begin{equation}
+\infer[\textit{Lemma}~\ref{lem:stlcsubst}]
+      {\Gamma,\vdash [t'/x]t:T_1}
+      {\Gamma, x : T_2 \vdash t : T_1 & \Gamma \vdash t' : T_2}
+\tag{B}
+\end{equation}
+\noindent (That is, we use the derivation which the proof of Theorem~\ref{lem:stlcsubst} constructs
+for the typing judgment with $[t'/x]t$).  We need to ensure that the measure of this derivation is smaller,
+in the Dershowitz-Manna ordering, than the measure of the typing derivation
+we started with.  We are going to remove one copy of $T_2 \to T_1$ from
+the measure, when we transform (A) into (B).  For the measure to decrease,
+we need to make sure that the only types we add to the multiset are smaller than $T_2 \to T_1$.
+This would be a problem in the situation where the typing derivation for $t'$ contained a redex
+type of the same size or larger than $T_2 \to T_1$, and the variable $x$ occurred multiple times in $t$.  For then
+the proof of Lemma~\ref{lem:stlcsubst} would copy the typing derivation for $t'$
+several times, and that redex type would get added additional times to the multiset.  The elimination
+of one copy of $T_2 \to T_1$ would not suffice to cover those copied redex types (since we are assuming
+the copied redex types are not smaller than $T_2 \to T_1$).
+
+We can now see how to define our reduction strategy for terms $t$
+with typing derivation $\mathcal{D}$.  We only reduce redexes $r$ whose
+redex type in $\mathcal{D}$ is greater than the redex types of the
+redexes (if any) strictly inside $r$.  This means that redexes of smaller
+redex type could be copied -- but these copies are then covered by the
+elimination of the redex type of $r$.
+
+There is one final step of reasoning then required to show:
+
+\vspace{.25cm}
+\begin{theorem}
+\label{thm:meas}
+  Suppose $\mathcal{D}$ derives $\Gamma \vdash t : T$, and $t \leadsto t'$ using
+  the strategy just described.
+  Let $\mathcal{D}'$ be the derivation stated to exist by Theorem~\ref{thm:tppres}.
+  Then $\mu(\mathcal{D}) \ggcurly \mu(\mathcal{D}')$.
+\end{theorem}
+
+\begin{proof}
+  \noindent The final important consideration is that when we perform a $\beta$-reduction,
+  we might create new redexes that were not present before in the term.  For example,
+  in the following reduction, we create the redex $\textit{id}\ \textit{id}$:
+  \[
+  (\lambda\, x.\,(x\ \textit{id}))\ \textit{id} \ \leadsto
+  \lambda\, x.\,(\textit{id} \ \textit{id})
+  \]
+  \noindent But when we have a redex with redex type $T_2\to T_1$, we are substituting
+  an argument term of smaller type $T_2$ for the bound variable of the $\lambda$-abstraction.
+  Following the proof of Lemma~\ref{lem:stlcsubst}, we will find that the redex type of
+  redexes created by the substitution can only be $T_2$.  The addition of several redexes
+  with redex type $T_2$ is covered, again thanks to the Dershowitz-Manna ordering, by the
+  removal of the redex type $T_2 \to T_1$.
+\end{proof}
+
+\begin{corollary}
+  If $\Gamma \vdash t : T$, then $t$ is normalizing.
+\end{corollary}
+\begin{proof} By the preceding theorem, if we reduce $t$ using the strategy
+  that only reduces redexes $r$ whose redex type (in the associated typing derivation) is greater than the
+  redex types of any redexes strictly within $r$, we will reduce the
+  measure on the corresponding typing derivation.  Since the ordering
+  in question is well-founded (since the ordering on types is), we
+  must eventually reach a term $t'$ which cannot be further reduced
+  using the strategy.  It suffices just to show that $t'$ really is a
+  normal form.  For sake of contradiction, let $r$ be the smallest
+  redex in $t'$.  Since it is smallest, it could be reduced by our
+  strategy, since by definition it does not have any redexes within in
+  it (and hence cannot have any with redex type of greater or equal
+  size).  This contradicts the assumption that $t'$ cannot be further
+  reduced with our strategy.
+\end{proof}
+
 
 \section{Call-by-name Normalization for System F}
 
-This section gives a proof that call-by-name reduction is normalizing for
-unannotated System F (polymorphic lambda calculus), and considers a
-few consequences.  System F is defined with annotated terms, where
-$\lambda$-bound variables must be declared with their types.  So we
-have $\lambda x:T.t$ instead of just $\lambda x.t$.  For metatheoretic
-analysis, I prefer to work with unannotated terms.  This system (with
-unannotated terms) is also called $\lambda2$.
+This section gives a proof that call-by-name reduction is normalizing
+for unannotated System F (polymorphic lambda calculus).  System F is
+defined with annotated terms, where $\lambda$-bound variables must be
+declared with their types.  So we have $\lambda x:T.t$ instead of just
+$\lambda x.t$.  For metatheoretic analysis, I prefer to work with
+unannotated terms.  This system (with unannotated terms) is also
+called $\lambda2$.
 
-\section{Syntax}
+Since System F includes STLC, the proof given here can be viewed as a
+different way to prove a normalization property just for STLC (just
+ignore the parts of the proof dealing with polymorphism).  But we
+fundamentally need a different approach to normalization for System F,
+because there is no known way to extend the measure we used in the
+proof of the previous section, to work with the \emph{impredicative} polymorphism
+of System F.  Impredicativity means that types may quantify over all types,
+including themselves.  In contrast, predicative definitions may only
+reference sets of previously constructed elements.
+
+With impredicative polymorphism, the linchpin in the proof above of
+Theorem~\ref{thm:meas} fails.  If we have a redex whose redex type is
+of the form $(\forall X.T) \to T'$, then when we substitute the
+argument term for the bound variable of type $\forall X.T$, we may end
+up creating a redex with a much bigger redex type.  This is because
+the variable might be applied to an argument in the body of the
+$\lambda$-abstraction, after instantiating its type variable $X$ with
+some large type.
+
+The method of defining a compositional interpretation of types in
+order to show normalization is due to Tait.  It was extended by Girard
+to handle impredicative polymorphism.
+
+Proving just that call-by-name reduction normalizes is simpler than
+proving normalization of full $\beta$-reduction, in one important
+case.  For a $\lambda$-abstraction of type $T_1 \to T_2$, it could
+happen that $T_1$ is an empty type (i.e., no terms have that type).
+Then it requires some extra work to make sure that the body of the
+$\lambda$-abstraction normalizes, even when a variable of empty type
+is in scope.  It is simpler not to have to worry about that case.
+Since call-by-name reduction does not descend under
+$\lambda$-abstractions, we can avoid the issue (at the cost of a
+weaker theorem: when reducing a closed term, $\beta$-redexes can still
+occur in the final term, but only under $\lambda$-abstractions).
+
+\subsection{Syntax}
 \label{sec:syntax}
 
 \[
@@ -270,17 +604,14 @@ unannotated terms) is also called $\lambda2$.
 \]
 
 
-\section{Typing}
+\subsection{Typing}
 
 A typing context $\Gamma$ declares free term and type variables:
 \[
 \textit{Typing context }\Gamma ::= \cdot\ |\ \Gamma, x:T\ |\ \Gamma, X : \star
 \]
-We treat $\Gamma$ as a function, and write $\Gamma(x) = T$ to mean
-that $\Gamma$ contains a declaration $x : T$.  We will implicitly
-require that $\Gamma$ does not declare any variable $x$ twice.
-Variables can be implicitly renamed in $\lambda$-terms to make it
-possible to enforce this requirement.  The typing rules are in
+We write $\Gamma(x) = T$ to mean looking up the first typing for $x$ in $\Gamma$,
+starting from the right.The typing rules are in
 Figure~\ref{fig:tp}.  To ensure that types are well-formed, we
 use some extra rules, called \emph{kinding} rules, in Figure~\ref{fig:knd}.  
 
@@ -310,7 +641,7 @@ use some extra rules, called \emph{kinding} rules, in Figure~\ref{fig:knd}.
 \label{fig:knd}
 \end{figure}
 
-\section{Semantics for types}
+\subsection{Semantics for types}
 
 Figure~\ref{fig:semtp} gives a compositional semantics
 $\interp{T}_\rho$ for types.  The function $\rho$ gives the
@@ -326,7 +657,8 @@ satisfying the following requirements:
 \item $R \subseteq \mathcal{N}$
 \item If $t\in R$ and $t'\leadsto t$, then $t'\in R$
 \end{itemize}
-The set of all reducibility candidates is denoted $\mathcal{R}$.
+In other words, it is a set of normalizing terms closed under $\beta$-expansion (the converse relation
+of $\beta$-reduction).  The set of all reducibility candidates is denoted $\mathcal{R}$.
 
 \vspace{0.25cm}
 
@@ -350,7 +682,8 @@ The set of all reducibility candidates is denoted $\mathcal{R}$.
   $t'\leadsto t$, and show $t'\in\bigcap S$.  For the latter, it
   suffices to show $t'\in R$ for every $R\in S$.  Consider an
   arbitrary such $R$.  From $t\in\bigcap S$ and $R \in S$, we have
-  $t\in R$.  Then since $R$ is a reducibility candidate, $t \in R$ and
+  $t\in R$.  Then since $R$ is expansion-closed (since it is a reducibility
+  candidate), $t \in R$ and
   $t'\leadsto t$ implies $t'\in R$, .
 \end{proof}
 
@@ -405,7 +738,7 @@ then also a reducibility candidate.
 
 \end{proof}
 
-\section{Soundness of Typing Rules}
+\subsection{Soundness of Typing Rules}
 
 The goal of this section is to prove that terms which can be assigned
 a type using the rules of Figure~\ref{fig:tp} are normalizing.  We
@@ -473,14 +806,14 @@ use the induction hypothesis to conclude $\sigma x\in\interp{T}_\rho$.
 
 \underline{Case:}
 \[
-\infer{\Gamma \vdash \lambda x . t : T \to T')}{\Gamma, x : T \vdash t : T'} 
+\infer{\Gamma \vdash \lambda x . t : T \to T'}{\Gamma, x : T \vdash t : T'} 
 \]
 To prove $(\lambda x.\sigma t) \in \interp{T\to T'}_\rho$, it suffices
 to assume an abitrary $t'\in\interp{T}_\rho$ and prove $(\lambda
 x.\sigma t)\ t'\in\interp{T'}_\rho$.  Since $\interp{T'}_\rho$ is a
 reducibility candidate, it suffices to prove $[t'/x]\sigma
 t\in\interp{T'}_\rho$, since $(\lambda x.\sigma t)\ t' \leadsto
-[t'/x](\sigma t)$.  But if we let $\sigma'=\sigma[x\mapsto t']$, then
+[t'/x](\sigma t)$ (using call-by-name reduction).  But if we let $\sigma'=\sigma[x\mapsto t']$, then
 we have $(\sigma',\rho)\in\interp{\Gamma,x:T}$ by
 Lemma~\ref{lem:ctxtext}, so we may apply the IH to conclude $\sigma'
 t\in\interp{T'}_\rho$, as required.
@@ -528,7 +861,213 @@ $\interp{[T'/X]T}_\rho = \interp{T}_{\rho[X\mapsto T']}$
 
 \end{proof}
 
-%\bibliographystyle{plain}
-%\bibliography{main}
+\bibliographystyle{plain}
+\bibliography{biblio}
+
+\appendix
+
+\section{Proof of type preservation for STLC (Theorem~\ref{thm:tppres})}
+\label{sec:tppres}
+
+The proof is
+  by induction on the structure of the derivation of $t \leadsto t'$.  
+
+\ 
+
+\noindent \underline{\textbf{Case:}}
+\[
+\apparule
+\]
+\noindent In this case, the $t$ mentioned in the theorem has been
+refined to an application, $t_1\ t_2$.  There is only one typing rule that
+can type an application, and so the typing derivation we are assuming
+we have must end with this inference:
+
+\[
+\infer{\Gamma \vdash t_1\ t_2 : T_1}
+      {\Gamma \vdash t_1 : T_2 \to T_1 & \Gamma \vdash t_2 : T_2}
+\]
+
+\noindent We may apply our induction hypothesis to the proof of $t_1\
+\leadsto\ t_1'$ and the proof in the first premise of this inference,
+to get:
+\[ 
+\Gamma \vdash t_1' : T_2\to T_1
+\]
+
+\noindent Putting this together with our proof of $\Gamma \vdash t_2 : T_2$
+(from the second premise of the typing proof above), we have
+\[
+\infer{\Gamma \vdash t_1'\ t_2: T_1}
+{\Gamma \vdash t_1' : T_2\to T_1 & \Gamma \vdash t_2:T_2}
+\]
+
+\noindent The case for the other application rule is similar, so we omit the details.
+
+\ 
+
+\noindent \underline{\textbf{Case:}}
+\[
+\lamrule
+\]
+
+\noindent Here, we have refined the $t$ from the statement of the theorem
+to $\lambda\,x.\, t$.  Since there is only one typing rule that can type
+a $\lambda$-abstraction, we know that our assumed typing derviation must
+end in an inference of this form:
+\[ 
+\infer{\Gamma\vdash \lambda\,x.\,t : T_1 \to T_2}
+      {\Gamma,x:T_1\vdash t:T_2}
+\]
+\noindent Then by our induction hypothesis applied to the derivation in
+the premise of the reduction inference and the derivation in the premise
+of the typing inference, we obtain:
+
+\[ 
+\Gamma, x:T_1 \vdash t' : T_2
+\]
+       
+\noindent Now we may apply the rule for typing $\lambda$-abstractions get:
+
+\[
+\infer{\Gamma \vdash \lambda x. t' : T_1 \to T_2}
+{\Gamma, x:T_1 \vdash t' : T_2}
+\]
+
+\noindent \underline{\textbf{Case:}}
+\[ 
+\betarule
+\]
+
+\noindent By similar reasoning about the possible form of the typing derivation, we may deduce
+it ends in this form:
+
+\[ 
+\infer{\Gamma \vdash (\lambda x.t)\ t' : T_1}
+       {\infer{\Gamma \vdash (\lambda x.t) : T_2\to T_1}
+              {\Gamma, x : T_2 \vdash t : T_1} & \Gamma \vdash t' : T_2}
+\]
+
+\noindent To complete this case, it suffices to apply 
+Lemma~\ref{lem:stlcsubst} to the premises of the above derivation:
+\[
+\infer[\textit{Lemma}~\ref{lem:stlcsubst}]
+      {\Gamma,\vdash [t'/x]t:T_1}
+      {\Gamma, x : T_2 \vdash t : T_1 & \Gamma \vdash t' : T_2}
+\]
+
+
+\section{Proofs of Weakening and Substitution Lemmas}
+\label{sec:stlcsubst}
+
+We will prove Lemma~\ref{lem:stlcsubst} in the following generalized form:
+\begin{lemma}[Substitution]
+\label{lem:stlcsubsta}
+If $\Gamma_1, y:T_b, \Gamma_2 \vdash t_a : T_a$ and $\Gamma_1 \vdash t_b : T_b$, then
+$\Gamma_1,\Gamma_2 \vdash [t_b/y]t_a : T_a$.
+\end{lemma}
+
+The proof relies on the
+following lemma, which we prove first.
+
+\begin{lemma}[Weakening]
+\label{lem:stlcweak}
+If $\Gamma_1, \Gamma_3 \vdash t_a : T_a$ then $\Gamma_1, \Gamma_2,
+\Gamma_3 \vdash t_a : T_a$, assuming that the variables declared in
+$\Gamma_2$ are disjoint from those declared in $\Gamma_1$ and
+$\Gamma_3$.
+\end{lemma}
+
+\begin{proof}
+The proof is by induction on the structure of the assumed derivation.
+
+\ 
+
+\noindent\underline{\textbf{Case:}}
+\[
+\infer{\Gamma_1,\Gamma_3\vdash x : T}{(\Gamma_1,\Gamma_3)(x) = T} 
+\]
+\noindent We can use this inference:
+\[
+\infer{\Gamma_1,\Gamma_2,\Gamma_3\vdash x : T}{(\Gamma_1,\Gamma_2\Gamma_3)(x) = T} 
+\]
+
+\noindent\underline{\textbf{Case:}}
+\[
+\infer{\Gamma_1,\Gamma_3\vdash \lambda\,x.\,t : T_1 \to T_2}
+      {\Gamma_1,\Gamma_3,x:T_1\vdash t:T_2}
+\]
+\noindent We can use this derivation, where we are writing (as in Chapter~\ref{ch:opsemwhile})
+applications of the induction hypothesis \textit{IH} as inferences in a derivation:
+\[
+\infer{\Gamma_1,\Gamma_2,\Gamma_3\vdash \lambda\,x.\,t : T_1 \to T_2}
+      {\infer[\textit{IH}]{\Gamma_1,\Gamma_2,\Gamma_3,x:T_1\vdash t:T_2}{\Gamma_1,\Gamma_3,x:T_1\vdash t:T_2}}
+\]
+\noindent\underline{\textbf{Case:}}
+\[
+\infer{\Gamma_1,\Gamma_3\vdash t_1\ t_2 : T_1}
+      {\Gamma_1,\Gamma_3\vdash t_1 : T_2 \to T_1 &
+       \Gamma_1,\Gamma_3\vdash t_2 : T_2}
+\]
+\noindent We can use this derivation:
+\[
+\infer{\Gamma_1,\Gamma_3\vdash t_1\ t_2 : T_1}
+      {\infer[\textit{IH}]{\Gamma_1,\Gamma_2,\Gamma_3\vdash t_1 : T_2 \to T_1}{\Gamma_1,\Gamma_3\vdash t_1 : T_2 \to T_1} &
+       \infer[\textit{IH}]{\Gamma_1,\Gamma_2,\Gamma_3\vdash t_2 : T_2}{\Gamma_1,\Gamma_3\vdash t_2 : T_2}}
+\]
+\end{proof}
+
+\noindent Now we can prove the Substitution Lemma:
+
+\begin{proof}[Proof of Lemma~\ref{lem:stlcsubsta} (Substitution)]
+The proof is by induction on the structure of the first assumed derivation.
+
+\ 
+
+\noindent \underline{\textbf{Case:}}
+\[
+\infer{\Gamma_1,y:T_b,\Gamma_2\vdash x : T_a}{\Gamma(x) = T_a} 
+\]
+\noindent Here, $t_a = x$.  We must case split on whether or not $x =
+y$.  If so, then $[t_b/y]t_a = [t_b/y]y = t_b$, and $T_a = T_b$.  We
+construct this derivation, where we are applying
+Lemma~\ref{lem:stlcweak} (Weakening) as part of the derivation:
+\[
+\infer[\textit{Lemma}~\ref{lem:stlcweak}]{\Gamma_1,\Gamma_2\vdash t_b:T_b}{\Gamma_1\vdash t_b:T_b}
+\]
+\noindent If $x\neq y$, then we use the following derivation, where we know $x$ is declared
+in $\Gamma_1,\Gamma_2$ since it is declared in $\Gamma = \Gamma_1,y:T_2,\Gamma_2$ and
+$x\neq y$:
+\[
+\infer{\Gamma_1,\Gamma_2\vdash x : T_a}{(\Gamma_1,\Gamma_2)(x) = T_a} 
+\]
+
+\noindent \underline{\textbf{Case:}}
+\[
+\infer{\Gamma_1,y:T_b,\Gamma_2\vdash \lambda\,x.\,t : T_1\to T_2}{\Gamma_1,y:T_b,\Gamma_2,x:T_1\vdash t:T_2}
+\]
+\noindent We construct this derivation, where we may assume $x\neq y$, and so the term in
+the conclusion, $\lambda\,x.\,[t_b/y]t$, equals the desired term $[t_b/y]\lambda\,x.\,t$:
+\[
+\infer{\Gamma_1,\Gamma_2\vdash \lambda\,x.\,[t_b/y]t : T_1\to T_2}
+      {\infer[\textit{IH}]{\Gamma_1,\Gamma_2,x:T_1\vdash [t_b/y]t:T_2}{\Gamma_1,y:T_b,\Gamma_2,x:T_1\vdash t:T_2}}
+\]
+
+\noindent\underline{\textbf{Case:}}
+\[
+\infer{\Gamma_1,y:T_b,\Gamma_2\vdash t_1\ t_2 : T_1}
+      {\Gamma_1,y:T_b,\Gamma_2\vdash t_1 : T_2 \to T_1 &
+       \Gamma_1,y:T_b,\Gamma_2\vdash t_2 : T_2}
+\]
+\noindent We construct this derivation, where the term in the conclusion equals
+the desired $[t_b/y](t_1\ t_2)$:
+\[
+\infer{\Gamma_1,\Gamma_2\vdash [t_b/y]t_1\ [t_b/y]t_2 : T_1}
+      {\infer{\Gamma_1,\Gamma_2\vdash [t_b/y]t_1 : T_2 \to T_1}{\Gamma_1,y:T_b,\Gamma_2\vdash t_1 : T_2 \to T_1} &
+       \infer{\Gamma_1,\Gamma_2\vdash [t_b/y]t_2 : T_2}{\Gamma_1,y:T_b,\Gamma_2\vdash t_2 : T_2}}
+\]
+
+\end{proof}
+
 
 \end{document}
