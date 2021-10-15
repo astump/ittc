@@ -2,6 +2,7 @@
 
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{url}
+\usepackage{natbib}
 \usepackage{proof}
 \usepackage{stmaryrd}
 \usepackage{mathabx}
@@ -9,6 +10,8 @@
 \usepackage{fullpage}
 \usepackage[tocflat]{tocstyle}
 \setcounter{tocdepth}{2}
+
+\bibliographystyle{plainnat}
 
 \providecommand{\betarule}[0]{\infer[\beta]{(\lambda\,x.\, t)\ t'\ \leadsto\ [t'/x]t}
                                 {\ }}
@@ -193,6 +196,18 @@ which is indeed $\alpha$-equivalent to \textit{id}.  This is an artificial examp
 but one can define the usual arithmetic operations like addition, multiplication, etc., using
 the Church encoding.
 
+\textbf{Exercises:}
+\begin{enumerate}
+\item Write down a reduction sequence (i.e., a sequence of $\beta$-reductions like $t_1 \leadsto t_2 \leadsto \cdots$)
+  from the following term to a normal form:
+  \[
+  (\lambda\,f.\,\lambda\, a.\, f\ (f\ a))\ (\lambda\,x.\,\lambda\, y.\, x)
+  \]
+
+\item For the previous example, how many different reduction sequences are there to a normal form?
+\end{enumerate}
+
+
 \subsection{Call-by-name reduction}
 
 Functional programming languages generally do not implement full
@@ -347,6 +362,14 @@ $T_1$ and $T_2$.
 \label{fig:stlcex}
 \end{figure}
 
+\textbf{Exercises:} Write out typing derivations, using the rules of Figure~\ref{fig:stlc}, for
+  the following typing judgments, assuming base types $a$, $b$, and $c$.  
+  \begin{enumerate}
+  \item $\cdot, x:b, y : b\to b \vdash y\ (y\ x) : b$
+  \item $\cdot \vdash \lambda\,x.\,\lambda\,y.\,x : a \to (b \to a)$
+  \item $\cdot \vdash \lambda\,x.\,\lambda\,y.\lambda\,z.\,((x\ z)\ (y\ z)) : (a \to (b \to c)) \to ((a \to b) \to (a \to c))$
+  \end{enumerate}
+
 \section{Normalization for the Simply Typed Lambda Calculus}
 
 In this section, we will prove that terms that are statically typable
@@ -493,12 +516,12 @@ several times, and that redex type would get added additional times to the multi
 of one copy of $T_2 \to T_1$ would not suffice to cover those copied redex types (since we are assuming
 the copied redex types are not smaller than $T_2 \to T_1$).
 
-We can now see how to define our reduction strategy for terms $t$
-with typing derivation $\mathcal{D}$.  We only reduce redexes $r$ whose
+We can now see how to define our reduction strategy for terms
+with typing derivation $\mathcal{D}$.  We only reduce redexes $(\lambda\,x.\,t)\ t'$ whose
 redex type in $\mathcal{D}$ is greater than the redex types of the
-redexes (if any) strictly inside $r$.  This means that redexes of smaller
+redexes (if any) in the argument $t'$.  This means that redexes of smaller
 redex type could be copied -- but these copies are then covered by the
-elimination of the redex type of $r$.
+elimination of the redex type of $(\lambda\,x.\,t)\ t'$.
 
 There is one final step of reasoning then required to show:
 
@@ -545,6 +568,30 @@ There is one final step of reasoning then required to show:
   reduced with our strategy.
 \end{proof}
 
+\textbf{Exercises:} 
+\begin{enumerate}
+\item Underline all the redexes in this term:
+  \[
+  \cdot\vdash (\lambda\,q.\,\lambda\,h.\,((\lambda\, z.\,(q\ z\ z))\ ((\lambda\, y.\,y\, h)\ (\lambda\,x.\,x))))\ (\lambda\,u.\,\lambda\,v.\,u)
+  \]
+\item Confirm (informally, or with a full typing derivation) that this term can be assigned type $b$ if we make these assignments for the bound vvariables:
+  \begin{itemize}
+  \item $u : b$
+  \item $v : b$    
+  \item $h : b$
+  \item $q : b \to (b \to b)$
+  \item $z : b$
+  \item $y : b \to b$
+  \item $x : b$
+  \end{itemize}
+
+\item What are the redex types given this assignment of types to the bound variables?
+
+\item Is there any redex that is not allowed by the above reduction strategy?
+
+\item Show one reduction sequence that is allowed by our strategy, and which
+  reaches a normal form.
+\end{enumerate}
 
 \section{Call-by-name Normalization for System F}
 
@@ -575,9 +622,11 @@ the variable might be applied to an argument in the body of the
 $\lambda$-abstraction, after instantiating its type variable $X$ with
 some large type.
 
-The method of defining a compositional interpretation of types in
-order to show normalization is due to Tait.  It was extended by Girard
-to handle impredicative polymorphism.
+The method of defining a compositional interpretation of simple types in
+order to show normalization is due to Tait~\cite{tait67}.  It was extended by Girard
+to handle impredicative polymorphism~\cite{girard72}.  An accessible source
+for Girard's proof is~\citet{girard1989}, which
+I recommend for learning more about these topics.
 
 Proving just that call-by-name reduction normalizes is simpler than
 proving normalization of full $\beta$-reduction, in one important
@@ -587,9 +636,9 @@ Then it requires some extra work to make sure that the body of the
 $\lambda$-abstraction normalizes, even when a variable of empty type
 is in scope.  It is simpler not to have to worry about that case.
 Since call-by-name reduction does not descend under
-$\lambda$-abstractions, we can avoid the issue (at the cost of a
+$\lambda$-abstractions, we can avoid the issue, at the cost of a
 weaker theorem: when reducing a closed term, $\beta$-redexes can still
-occur in the final term, but only under $\lambda$-abstractions).
+occur in the final term, but only under $\lambda$-abstractions.
 
 \subsection{Syntax}
 \label{sec:syntax}
@@ -599,10 +648,13 @@ occur in the final term, but only under $\lambda$-abstractions).
 \textit{term variables}\ x & \ & \ \\
 \textit{type variables}\ X & \ & \ \\
 \textit{terms}\ t & ::= & x \ |\ \lambda x .t\ |\ t\ t'\\
-\textit{types}\ T & ::= & X\ |\ T \to T'\ |\ \forall X.T
+\textit{types}\ T & ::= & X\ |\ T \to T'\ |\ \forall\, X.\, T
 \end{array}
 \]
 
+The new form of type is $\forall\, X.\,T$.  This is a polymorphic
+type, which intuitively means that for any type $T'$, $t$ can be typed
+with the instance $[T'/X]T$ of the body.  
 
 \subsection{Typing}
 
@@ -621,8 +673,8 @@ use some extra rules, called \emph{kinding} rules, in Figure~\ref{fig:knd}.
 \infer{\Gamma \vdash x : T}{\Gamma(x) = T} &\ \ \ &
 \infer{\Gamma \vdash \lambda x . t : T \to T'}{\Gamma, x : T \vdash t : T'} &\ \ \ &
 \infer{\Gamma \vdash t\ t' : T_2}{\Gamma \vdash t : T_1 \to T_2 & \Gamma \vdash t' : T_1} \\ \\
-\infer{\Gamma \vdash t : \forall X.T}{\Gamma,X : \star \vdash t : T} &\ \ \ &
-\infer{\Gamma \vdash t : [T'/X]T}{\Gamma \vdash t : \forall X.T & \Gamma \vdash T' : \star} &\ \ \ &\ 
+\infer{\Gamma \vdash t : \forall \,X.\,T}{\Gamma,X : \star \vdash t : T} &\ \ \ &
+\infer{\Gamma \vdash t : [T'/X]T}{\Gamma \vdash t : \forall\, X.\,T & \Gamma \vdash T' : \star} &\ \ \ &\ 
 \end{array}
 \]
 \caption{Typing rules for unannotated System F}
@@ -634,19 +686,30 @@ use some extra rules, called \emph{kinding} rules, in Figure~\ref{fig:knd}.
 \begin{array}{lllll}
 \infer{\Gamma \vdash X : \star}{\Gamma(X) = \star} &\ \ \ &
 \infer{\Gamma \vdash T_1 \to T_2 : \star}{\Gamma \vdash T_1 : \star & \Gamma \vdash T_2 : \star} &\ \ \ &
-\infer{\Gamma \vdash \forall X.T : \star}{\Gamma,X : \star \vdash T : \star}
+\infer{\Gamma \vdash \forall\, X.\,T : \star}{\Gamma,X : \star \vdash T : \star}
 \end{array}
 \]
 \caption{Kinding rules for unannotated System F}
 \label{fig:knd}
 \end{figure}
 
+An example derivable typing is
+\[
+\cdot \vdash \lambda\,x.\,(x\ x) : \textit{Unit} \to \textit{Unit}
+\]
+\noindent where \textit{Unit} abbreviates $\forall\,X.\,(X \to X)$.  The
+idea is that if $x$ has type \textit{Unit}, then we may apply it to an argument
+of type $X$, and get back a result of type $X$, for any $X$.  So we may apply $x$
+to itself, by instantiating $X$ with \textit{Unit}.  (So where we are using $x$ here
+as a function, we are using it at type $\textit{Unit} \to \textit{Unit}$.)
+
 \subsection{Semantics for types}
+\label{sec:sem}
 
 Figure~\ref{fig:semtp} gives a compositional semantics
 $\interp{T}_\rho$ for types.  The function $\rho$ gives the
 interpretations of free type variables in $T$.  Each free type
-variable is interpreted as a \emph{reducibility candidate}, and write
+variable is interpreted as a \emph{reducibility candidate}, and we write
 $\rho$ only for functions mapping type variables $X$ to reducibility
 candidates.  To define what a reducibility candidate is: let us denote
 the set of \underline{closed} terms which normalize using call-by-name
@@ -664,7 +727,7 @@ of $\beta$-reduction).  The set of all reducibility candidates is denoted $\math
 
 \begin{lemma}[$\mathcal{R}$ is a cpo]
   The set $\mathcal{R}$ ordered by subset forms a complete partial
-  order, with greatest element $\mathcal{N}$ and greatest lower bound
+  order: it has greatest element $\mathcal{N}$, and greatest lower bound
   of a nonempty set of elements of $\mathcal{R}$ given by
   intersection.
 \end{lemma}
@@ -692,7 +755,7 @@ of $\beta$-reduction).  The set of all reducibility candidates is denoted $\math
 \begin{array}{lll}
 \interp{X}_\rho & = & \rho(X) \\ \\
 \interp{T_1 \to T_2}_\rho & = & \{ t \in \mathcal{N}\ |\ \forall t'\in\interp{T_1}_\rho.\ t\ t'\in\interp{T_2}_\rho \} \\ \\
-\interp{\forall X.T}_\rho & = & \bigcap_{R\in\mathcal{R}} \interp{T}_{\rho[X\mapsto R]} 
+\interp{\forall\, X.\,T}_\rho & = & \bigcap_{R\in\mathcal{R}} \interp{T}_{\rho[X\mapsto R]} 
 \end{array}
 \]
 \caption{Reducibility semantics for types}
@@ -730,7 +793,7 @@ reducibility candidate.  So since $t'\ t''\leadsto t\ t''$ and $t\
 t''\in\interp{T_2}_\rho$, we also have $t'\ t''\in\interp{T_2}_\rho$.
 This was all we had to prove in this case.
 
-Finally, if $T$ is a universal type $\forall X.T'$, then by IH, the
+Finally, if $T$ is a universal type $\forall\, X.\,T'$, then by IH, the
 set $\interp{T'}_{\rho[X\mapsto R]}$ is a reducibility candidate for
 all $R\in\mathcal{R}$.  Since $\mathcal{R}$ is a complete partial
 order, $\bigcap_{R\in\mathcal{R}}\interp{T'}_{\rho[X\mapsto R]}$ is
@@ -785,11 +848,24 @@ all $x$ in the domain of $\sigma$.
 
 
 \begin{theorem}[Soundness of typing rules with respect to the semantics]
+\label{thm:snd}
 If $\Gamma\vdash t : T$, then for all $(\sigma,\rho)\in\interp{\Gamma}$, we have $\sigma t \in\interp{T}_\rho$.
 \end{theorem}
 \begin{proof}
 The proof is by induction on the structure of the assumed typing derivation.
 In each case, we will implicitly assume an arbitrary $(\sigma,\rho)\in\interp{\Gamma}$.
+Let us start with an easy case that shows the power of Tait's semantics for 
+
+\underline{Case:}
+\[
+\infer{\Gamma \vdash t\ t' : T_2}{\Gamma \vdash t : T_1 \to T_2 & \Gamma \vdash t' : T_1} 
+\]
+By the IH, $\sigma t\in\interp{T_1 \to T_2}_\rho$ and $\sigma
+t'\in\interp{T_1}_\rho$.  By the semantics of arrow types, this
+immediately implies $(\sigma t)\ (\sigma t')\in\interp{T_2}_\rho$, as
+required.
+
+
 
 \underline{Case:}
 \[
@@ -808,7 +884,7 @@ use the induction hypothesis to conclude $\sigma x\in\interp{T}_\rho$.
 \[
 \infer{\Gamma \vdash \lambda x . t : T \to T'}{\Gamma, x : T \vdash t : T'} 
 \]
-To prove $(\lambda x.\sigma t) \in \interp{T\to T'}_\rho$, it suffices
+All closed $\lambda$-abstractions are in $\mathcal{N}$.  So to prove $(\lambda x.\sigma t) \in \interp{T\to T'}_\rho$, it suffices
 to assume an abitrary $t'\in\interp{T}_\rho$ and prove $(\lambda
 x.\sigma t)\ t'\in\interp{T'}_\rho$.  Since $\interp{T'}_\rho$ is a
 reducibility candidate, it suffices to prove $[t'/x]\sigma
@@ -820,18 +896,9 @@ t\in\interp{T'}_\rho$, as required.
 
 \underline{Case:}
 \[
-\infer{\Gamma \vdash t\ t' : T_2}{\Gamma \vdash t : T_1 \to T_2 & \Gamma \vdash t' : T_1} 
+\infer{\Gamma \vdash t : \forall\, X.\,T}{\Gamma,X : \star \vdash t : T} 
 \]
-By the IH, $\sigma t\in\interp{T_1 \to T_2}_\rho$ and $\sigma
-t'\in\interp{T_1}_\rho$.  By the semantics of arrow types, this
-immediately implies $(\sigma t)\ (\sigma t')\in\interp{T_2}_\rho$, as
-required.
-
-\underline{Case:}
-\[
-\infer{\Gamma \vdash t : \forall X.T}{\Gamma,X : \star \vdash t : T} 
-\]
-We must prove $\sigma t\in\interp{\forall X.T}_\rho$.  By the
+We must prove $\sigma t\in\interp{\forall\, X.\,T}_\rho$.  By the
 semantics of universal types, it suffices to assume an arbitrary
 $R\in\mathcal{R}$, and prove $\sigma t\in\interp{T}_{\rho[X\mapsto
   R]}$.  But this follows by the IH, which we can apply because
@@ -840,9 +907,9 @@ Lemma~\ref{lem:ctxtext}.
 
 \underline{Case:}
 \[
-\infer{\Gamma \vdash t : [T'/X]T}{\Gamma \vdash t : \forall X.T & \Gamma \vdash T' : \star} 
+\infer{\Gamma \vdash t : [T'/X]T}{\Gamma \vdash t : \forall\, X.\,T & \Gamma \vdash T' : \star} 
 \]
-By the IH, we know $\sigma t\in\interp{\forall X.T}_\rho$, which by the semantics
+By the IH, we know $\sigma t\in\interp{\forall\, X.\,T}_\rho$, which by the semantics
 of universal types is equivalent to
 \begin{equation}
 \label{eq1}
@@ -861,7 +928,23 @@ $\interp{[T'/X]T}_\rho = \interp{T}_{\rho[X\mapsto T']}$
 
 \end{proof}
 
-\bibliographystyle{plain}
+A type is called \textbf{inhabited} iff there is some term that can be assigned
+that type in the empty context.  
+
+\vspace{0.25cm}
+\begin{corollary}[Logical soundness]
+  There is type $T$ which is uninhabited.
+\end{corollary}
+\begin{proof}
+  The type is $\forall\,X.\,X$.  Suppose that there is some term $t$ with
+  $\cdot\vdash t : \forall\,X.\,X$.  By Theorem~\ref{thm:snd}, we have $t \in \interp{\forall\,X.\,X}_\emptyset$.
+  But the interpretation of $\forall\,X.\,X$ is the intersection of all reducibility candidates.
+  Now $\emptyset$ is a reducibility candidate (according to the definition at the start of Section~\ref{sec:sem}).
+  This is because it is a subset of $\mathcal{N}$ and is trivially expansion-closed.  But then $t\in\emptyset$,
+  which is impossible.
+  \end{proof}
+  
+
 \bibliography{biblio}
 
 \appendix
