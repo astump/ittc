@@ -959,10 +959,10 @@ that type in the empty context.
 
 \vspace{0.25cm}
 \begin{corollary}[Logical soundness]
-  There is type $T$ which is uninhabited.
+  There is an uninhabited type.
 \end{corollary}
 \begin{proof}
-  The type is $\forall\,X.\,X$.  Suppose that there is some term $t$ with
+  One such type is $\forall\,X.\,X$.  Suppose that there is some term $t$ with
   $\cdot\vdash t : \forall\,X.\,X$.  By Theorem~\ref{thm:snd}, we have $t \in \interp{\forall\,X.\,X}_\emptyset$.
   But the interpretation of $\forall\,X.\,X$ is the intersection of all reducibility candidates.
   Now $\emptyset$ is a reducibility candidate (according to the definition at the start of Section~\ref{sec:sem}).
