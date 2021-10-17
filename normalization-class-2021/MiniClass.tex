@@ -72,7 +72,7 @@ invoking the induction hypothesis in the proof is the same as making a
 recursive call.  But then potentially diverging programs correspond to
 potentially unsound inductions, and must be banned by the system.
 Otherwise, one could prove any formula using a diverging function as
-the proof.
+the proof.  
 
 In this short class, we will see proofs of normalization properties
 for several different type theories, namely simply typed lambda
@@ -606,6 +606,9 @@ $\lambda x.t$.  For metatheoretic analysis, I prefer to work with
 unannotated terms.  This system (with unannotated terms) is also
 called $\lambda2$.
 
+In addition to proving normalization, we will be able to draw an
+easy corollary: 
+
 Since System F includes STLC, the proof given here can be viewed as a
 different way to prove a normalization property just for STLC (just
 ignore the parts of the proof dealing with polymorphism).  But we
@@ -657,7 +660,7 @@ occur in the final term, but only under $\lambda$-abstractions.
 
 The new form of type is $\forall\, X.\,T$.  This is a polymorphic
 type, which intuitively means that for any type $T'$, $t$ can be typed
-with the instance $[T'/X]T$ of the body.  
+with the instance $[T'/X]T$.  
 
 \subsection{Typing}
 
@@ -673,7 +676,7 @@ use some extra rules, called \emph{kinding} rules, in Figure~\ref{fig:knd}.
 \begin{figure}
 \[
 \begin{array}{lllll}
-\infer{\Gamma \vdash x : T}{\Gamma(x) = T} &\ \ \ &
+\infer{\Gamma \vdash x : T}{\Gamma(x) = T & \Gamma \vdash T : \star} &\ \ \ &
 \infer{\Gamma \vdash \lambda x . t : T \to T'}{\Gamma, x : T \vdash t : T'} &\ \ \ &
 \infer{\Gamma \vdash t\ t' : T_2}{\Gamma \vdash t : T_1 \to T_2 & \Gamma \vdash t' : T_1} \\ \\
 \infer{\Gamma \vdash t : \forall \,X.\,T}{\Gamma,X : \star \vdash t : T} &\ \ \ &
@@ -705,6 +708,15 @@ idea is that if $x$ has type \textit{Unit}, then we may apply it to an argument
 of type $X$, and get back a result of type $X$, for any $X$.  So we may apply $x$
 to itself, by instantiating $X$ with \textit{Unit}.  (So where we are using $x$ here
 as a function, we are using it at type $\textit{Unit} \to \textit{Unit}$.)
+
+The proof of the following theorem relating typing and kinding is straightforward and omitted.
+The name ``regularity'' for the property expressed by the theorem is standard.
+\vspace{.25cm}
+\begin{theorem}[Regularity]
+\label{thm:regularity}
+If $\Gamma \vdash t : T$ then $\Gamma \vdash T:\star$.
+\end{theorem}
+
 
 \subsection{Semantics for types}
 \label{sec:sem}
@@ -926,9 +938,20 @@ displayed formula above (\ref{eq1}), we can conclude $\sigma t\in
 following lemma, whose easy proof by induction on $T$ we omit, to
 conclude $\sigma t\in\interp{[T'/X]T}_\rho$.
 \begin{lemma}
-$\interp{[T'/X]T}_\rho = \interp{T}_{\rho[X\mapsto T']}$
+$\interp{[T'/X]T}_\rho = \interp{T}_{\rho[X\mapsto \interp{T'}_\rho]}$
 \end{lemma}
+\vspace{-.3cm}
+\end{proof}
 
+\begin{corollary}
+  If $\cdot\vdash t : T$ is derivable in System F, then call-by-name reduction
+  reaches a normal form from $t$.
+\end{corollary}
+\begin{proof}
+  By Theorem~\ref{thm:snd}, we have $t \in \interp{T}_\emptyset$.  By Regularity (Theorem~\ref{thm:regularity}),
+  we have $\cdot\vdash T : \star$.  Then $\interp{T}_\emptyset$ is
+  a reducibility candidate by Lemma~\ref{lem:semred}.  This means it is a subset of $\mathcal{N}$.  So $t$ is
+  call-by-name normalizing.
 \end{proof}
 
 A type is called \textbf{inhabited} iff there is some term that can be assigned
