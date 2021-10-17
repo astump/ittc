@@ -503,7 +503,7 @@ to transform this derivation into
       {\Gamma, x : T_2 \vdash t : T_1 & \Gamma \vdash t' : T_2}
 \tag{B}
 \end{equation}
-\noindent (That is, we use the derivation which the proof of Theorem~\ref{lem:stlcsubst} constructs
+\noindent (That is, we use the derivation which the proof of Lemma~\ref{lem:stlcsubst} constructs
 for the typing judgment with $[t'/x]t$).  We need to ensure that the measure of this derivation is smaller,
 in the Dershowitz-Manna ordering, than the measure of the typing derivation
 we started with.  We are going to remove one copy of $T_2 \to T_1$ from
@@ -516,12 +516,14 @@ several times, and that redex type would get added additional times to the multi
 of one copy of $T_2 \to T_1$ would not suffice to cover those copied redex types (since we are assuming
 the copied redex types are not smaller than $T_2 \to T_1$).
 
-We can now see how to define our reduction strategy for terms
-with typing derivation $\mathcal{D}$.  We only reduce redexes $(\lambda\,x.\,t)\ t'$ whose
-redex type in $\mathcal{D}$ is greater than the redex types of the
-redexes (if any) in the argument $t'$.  This means that redexes of smaller
-redex type could be copied -- but these copies are then covered by the
-elimination of the redex type of $(\lambda\,x.\,t)\ t'$.
+We can now see how to define our reduction strategy for terms with
+typing derivation $\mathcal{D}$.  We may reduce redexes
+$(\lambda\,x.\,t)\ t'$ as long as either $x$ does not occur more than
+once in $t$, or else the redex type in $\mathcal{D}$ of the redex is
+greater than the redex types of the redexes (if any) in the argument
+$t'$.  Redexes of smaller redex type are allowed to be copied -- but
+these copies are then covered by the elimination of the redex type of
+$(\lambda\,x.\,t)\ t'$.
 
 There is one final step of reasoning then required to show:
 
@@ -590,7 +592,8 @@ There is one final step of reasoning then required to show:
 \item Is there any redex that is not allowed by the above reduction strategy?
 
 \item Show one reduction sequence that is allowed by our strategy, and which
-  reaches a normal form.
+  reaches a normal form.  Show the measure for the typing derivation associated
+  with each term in the sequence (to confirm it is indeed decreasing).
 \end{enumerate}
 
 \section{Call-by-name Normalization for System F}
