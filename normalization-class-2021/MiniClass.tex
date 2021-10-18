@@ -132,7 +132,7 @@ bound variables are called $\alpha$-equivalent.
 
 Full $\beta$-reduction is the relation that allows the above
 $\beta$-reduction step to take place anywhere in a term.  Since there
-can be more than \emph{$\beta$-redex} (a term of the form
+can be more than one \emph{$\beta$-redex} (a term of the form
 $(\lambda\,x.\, t)\ t'$) in a term, full $\beta$-reduction is
 non-deterministic: it can happen that $t\leadsto t_1$ and $t\leadsto
 t_2$, where $t_1$ and $t_2$ are different.  If for some similar
@@ -217,7 +217,7 @@ term, of a subset of its $\beta$-redexes that may be reduced next.
 Below, we will show some of our normalization results for a strategy
 called \textbf{call-by-name}.  This is a form of lazy reduction, where
 we do not require arguments $t'$ to be reduced before reducing
-$(\lambda\,x., t)\ t'$.  We can define single-step call-by-name
+$(\lambda\,x.\, t)\ t'$.  We can define single-step call-by-name
 reduction with these inference rules:
 \[
 \begin{array}{lll}
