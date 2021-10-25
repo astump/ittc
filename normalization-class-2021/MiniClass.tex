@@ -544,9 +544,11 @@ There is one final step of reasoning then required to show:
   in the following reduction, we create the redex $\textit{id}\ \textit{id}$:
   \[
   (\lambda\, x.\,(x\ \textit{id}))\ \textit{id} \ \leadsto
-  \lambda\, x.\,(\textit{id} \ \textit{id})
+  \textit{id} \ \textit{id}
   \]
-  \noindent But when we have a redex with redex type $T_2\to T_1$, we are substituting
+  \noindent The redex is created in the sense that the term it comes from -- namely, $(x\ \textit{id})$ -- is
+  not a redex, but it is a redex.  So we have to worry about our ordering decreasing in this case.
+  When we have a redex with redex type $T_2\to T_1$, we are substituting
   an argument term of smaller type $T_2$ for the bound variable of the $\lambda$-abstraction.
   Following the proof of Lemma~\ref{lem:stlcsubst}, we will find that the redex type of
   redexes created by the substitution can only be $T_2$.  The addition of several redexes
@@ -724,7 +726,9 @@ If $\Gamma \vdash t : T$ then $\Gamma \vdash T:\star$.
 \label{sec:sem}
 
 Figure~\ref{fig:semtp} gives a compositional semantics
-$\interp{T}_\rho$ for types.  The function $\rho$ gives the
+$\interp{T}_\rho$ for types.  (This notation for semantic
+value is widely used in Logic, Linguistics, and Computer Science,
+and is due to Dana Scott~\cite{rabern2016}.) The function $\rho$ gives the
 interpretations of free type variables in $T$.  Each free type
 variable is interpreted as a \emph{reducibility candidate}, and we write
 $\rho$ only for functions mapping type variables $X$ to reducibility
