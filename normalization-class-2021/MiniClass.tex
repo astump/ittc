@@ -422,8 +422,8 @@ of $\mathcal{D}$.
 
 For example, consider this typing derivation $\mathcal{D}$ for the term $\lambda\,x.\,(\textit{id}\ (\textit{id})\ x)$:
 \[
-\infer{\cdot\vdash \lambda\,x.\,(\textit{id}\ (\textit{id})\ x) : b \to b}
-      {\infer{\cdot, x : b \vdash (\textit{id}\ (\textit{id})\ x) : b}
+\infer{\cdot\vdash \lambda\,x.\,(\textit{id}\ (\textit{id}\ x)) : b \to b}
+      {\infer{\cdot, x : b \vdash (\textit{id}\ (\textit{id}\ x)) : b}
         {\infer{\cdot, x : b \vdash \textit{id} : \mathbf{b \to b}}{\infer{\cdot, x : b , x : b \vdash x : b}{\ }} &
           \infer{\cdot , x : b \vdash \textit{id}\ x : b}
                 {\infer{\cdot, x : b \vdash \textit{id} : \mathbf{b \to b}}{\infer{\cdot, x : b , x : b \vdash x : b}{\ }} &
