@@ -29,10 +29,11 @@
 	urlcolor={black},
 	linkcolor={black},
         citecolor={black}]{hyperref}
+\usepackage{doi}
 
 \begin{document}
 
-\newcommand{\interp}[1]{\llbracket #1 \rrbracket} 
+\newcommand{\interp}[1]{\llbracket #1 \rrbracket}
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{definition}[theorem]{Definition}
@@ -74,7 +75,7 @@ invoking the induction hypothesis in the proof is the same as making a
 recursive call.  But then potentially diverging programs correspond to
 potentially unsound inductions, and must be banned by the system.
 Otherwise, one could prove any formula using a diverging function as
-the proof.  
+the proof.
 
 In this short class, we will see proofs of normalization properties
 for several different type theories, namely simply typed lambda
@@ -130,7 +131,7 @@ that strictly speaking, substitution is now not a function, since more than
 one renaming is possible).
 
 Terms which are the same if one safely (i.e., without capture) renames
-bound variables are called $\alpha$-equivalent.  
+bound variables are called $\alpha$-equivalent.
 
 Full $\beta$-reduction is the relation that allows the above
 $\beta$-reduction step to take place anywhere in a term.  Since there
@@ -159,7 +160,7 @@ to be proved by the rules).  The leaves are drawn at the top, and the root at th
 bottom.  Edges between tree nodes are indicated with horizontal lines, showing
 that an inference has been made using a particular rule.  Axioms are rules that
 have no premises, and hence may be placed used at the leaves.
-  
+
 \begin{figure}
 \[
 \begin{array}{ll}
@@ -227,7 +228,7 @@ reduction with these inference rules:
       {\ }
 &\ &
 \infer[\textit{left}]{t_1\ t_2\ \leadsto\ t_1'\ t_2}
-      {t_1\ \leadsto\ t_1'}      
+      {t_1\ \leadsto\ t_1'}
 \end{array}
 \]
 \noindent Rather than just stipulating, as we did for full
@@ -237,24 +238,24 @@ first rule is just the $\beta$ rule again, of course.  The second,
 here called \emph{left},
 quite restricts where that $\beta$ rule can be applied.  It can only
 be applied in the left part of an application (or, using the $\beta$
-rule directly, at the top level of the term).  
+rule directly, at the top level of the term).
 A derivation built using these two rules has a use of the $\beta$-rule at the sole leaf of tree,
 followed by some sequence of uses of the \emph{left}-rule.   Here is an example derivation:
 \[
 \infer[\textit{left}]
-      {(\lambda\,x.\, \lambda\,y.\, \lambda z.\, (y\ x))\ (\textit{id}\ \textit{id}) \ \textit{id}\ \leadsto\ 
+      {(\lambda\,x.\, \lambda\,y.\, \lambda z.\, (y\ x))\ (\textit{id}\ \textit{id}) \ \textit{id}\ \leadsto\
       (\lambda\,y.\, \lambda\,z.\, (y\ (\textit{id}\ \textit{id})))\ \textit{id}}
       {\infer[\beta]{(\lambda\,x.\, \lambda\,y.\, \lambda z.\, (y\ x))\ (\textit{id}\ \textit{id})\ \leadsto\
           (\lambda\,y.\, \lambda\,z.\, (y\ (\textit{id}\ \textit{id})))}{\ }}
       \]
 \noindent This derivation proves the single reduction step (at the bottom of the derivation)
   \[
-(\lambda\,x.\, \lambda\,y.\, \lambda z.\, (y\ x))\ (\textit{id}\ \textit{id}) \ \textit{id}\ \leadsto\ 
-(\lambda\,y.\, \lambda\,z.\, (y\ (\textit{id}\ \textit{id})))\ \textit{id} 
+(\lambda\,x.\, \lambda\,y.\, \lambda z.\, (y\ x))\ (\textit{id}\ \textit{id}) \ \textit{id}\ \leadsto\
+(\lambda\,y.\, \lambda\,z.\, (y\ (\textit{id}\ \textit{id})))\ \textit{id}
 \]
 \noindent We can write a call-by-name \emph{reduction sequence} beginning with this step:
 \[
-(\lambda\,x.\, \lambda\,y.\, \lambda z.\, (y\ x))\ (\textit{id}\ \textit{id}) \ \textit{id}\ \leadsto\ 
+(\lambda\,x.\, \lambda\,y.\, \lambda z.\, (y\ x))\ (\textit{id}\ \textit{id}) \ \textit{id}\ \leadsto\
 (\lambda\,y.\, \lambda\,z.\, (y\ (\textit{id}\ \textit{id})))\ \textit{id}\ \leadsto\
 \lambda\,z.\, (\textit{id}\ (\textit{id}\ \textit{id}))
 \]
@@ -321,7 +322,7 @@ that term variable $x$ has type $T$ is denoted $\Gamma,x : T$.  The
 type-assignment rules for STLC are shown in Figure~\ref{fig:stlc}.  In
 the first rule, for typing variables, the notation $\Gamma(x) = T$ is
 used to mean that the result of looking up the first type for variable
-$x$ in context $\Gamma$, starting from the right, is $T$.  
+$x$ in context $\Gamma$, starting from the right, is $T$.
 
 An example typing derivation is given in Figure~\ref{fig:stlcex}.  It
 shows that in the empty context, $\lambda\,x.\,\lambda\,y.\,(x\ y)$
@@ -331,7 +332,7 @@ $T_1$ and $T_2$.
 \begin{figure}
 \[
 \begin{array}{lll}
-\infer{\Gamma\vdash x : T}{\Gamma(x) = T} 
+\infer{\Gamma\vdash x : T}{\Gamma(x) = T}
 
 &
 
@@ -365,7 +366,7 @@ $T_1$ and $T_2$.
 \end{figure}
 
 \textbf{Exercises:} Write out typing derivations, using the rules of Figure~\ref{fig:stlc}, for
-  the following typing judgments, assuming base types $a$, $b$, and $c$.  
+  the following typing judgments, assuming base types $a$, $b$, and $c$.
   \begin{enumerate}
   \item $\cdot, x:b, y : b\to b \vdash y\ (y\ x) : b$
   \item $\cdot \vdash \lambda\,x.\,\lambda\,y.\,x : a \to (b \to a)$
@@ -390,7 +391,7 @@ normalization.  Here we will prove just weak normalization.
 
 Quite a simple -- and to me, appealing -- proof of normalization for
 terms typable in STLC can be given using a well-founded ordering
-invented by Dershowitz and Manna~\cite{dm79}.  The idea of the
+invented by \citet{dm79}.  The idea of the
 normalization proof is to define, for each typing derivation, a
 certain measure.  This measure will be a multiset of types, one for
 each redex we find in the typing derivation.  Then we will see a
@@ -409,7 +410,7 @@ Suppose $\mathcal{D}$ is a typing derivation for judgment $\Gamma\vdash t : T$. 
 define a measure $\mu(\mathcal{D})$ to be the multiset of types $T_2 \to T_1$ which occur in an
 inference of the following form in $\mathcal{D}$:
 
-\[ 
+\[
 \infer{\Gamma \vdash (\lambda x.t)\ t' : T_1}
        {\infer{\Gamma \vdash (\lambda x.t) : T_2\to T_1}
               {\Gamma, x : T_2 \vdash t : T_1} & \Gamma \vdash t' : T_2}
@@ -438,7 +439,7 @@ size.
 \subsection{The Dershowitz-Manna multiset ordering}
 
 Dershowitz and Manna defined a very useful and influential ordering on finite multisets of elements of type $A$, extending
-a strict partial order (transitive and irreflexive) on $A$~\cite{dm79}.  The definition is that a finite multiset $M$ is
+a strict partial order (transitive and irreflexive) on $A$~\citep{dm79}.  The definition is that a finite multiset $M$ is
 greater than $M'$ (notation $M \ggcurly M'$) iff there are finite multisets $X$ and $Y$ such that
 \[
 M' = (M - X) \cup Y
@@ -450,7 +451,7 @@ For example, suppose that $A$ is the set of natural numbers, and we use the usua
 a multiset like $\{ 5, 5, 3 , 1 , 1 \}$ is greater than $\{ 4 , 4 , 4 , 4 , 5 , 3 , 1 , 0 , 0 , 0 \}$.  Here, the
 multiset $X$ is $\{ 5, 1 \}$ and the multiset $Y$ is $\{ 4 , 4 , 4 , 4 , 0 , 0 , 0 \}$.  For every element of $Y$,
 there is indeed a greater element of $X$.  The power of the ordering comes from the fact that there may be (finitely) many
-elements of $Y$ dominated by a single element of $X$.  
+elements of $Y$ dominated by a single element of $X$.
 
 \subsection{Type preservation: reduction preserves typing}
 
@@ -480,18 +481,18 @@ $\Gamma \vdash [t'/x]t : T_1$.
 \noindent This lemma says that substituting a term of type $T_2$ for a variable that
 is assumed to have type $T_2$ preserves typing (while eliminating that
 variable from the typing context).  This plays a crucial role in the next section.
-  
+
 \subsection{A reduction strategy that reduces the measure}
 \label{sec:mudec}
 
 The transformation implicit in the (constructive) proof of Theorem~\ref{thm:tppres}
 could change the measure of a typing derivation only in the following situation.  The
 proof of $t \leadsto t'$ ends in
-\[ 
+\[
 \betarule
 \]
 \noindent and the typing derivation ends in:
-\begin{equation} 
+\begin{equation}
 \infer{\Gamma \vdash (\lambda x.t)\ t' : T_1}
        {\infer{\Gamma \vdash (\lambda x.t) : T_2\to T_1}
               {\Gamma, x : T_2 \vdash t : T_1} & \Gamma \vdash t' : T_2}
@@ -574,7 +575,7 @@ There is one final step of reasoning then required to show:
   reduced with our strategy.
 \end{proof}
 
-\textbf{Exercises:} 
+\textbf{Exercises:}
 \begin{enumerate}
 \item Underline all the redexes in this term:
   \[
@@ -583,7 +584,7 @@ There is one final step of reasoning then required to show:
 \item Confirm (informally, or with a full typing derivation) that this term can be assigned type $b$ if we make these assignments for the bound vvariables:
   \begin{itemize}
   \item $u : b$
-  \item $v : b$    
+  \item $v : b$
   \item $h : b$
   \item $q : b \to (b \to b)$
   \item $z : b$
@@ -611,7 +612,7 @@ unannotated terms.  This system (with unannotated terms) is also
 called $\lambda2$.
 
 In addition to proving normalization, we will be able to draw an
-easy corollary: 
+easy corollary:
 
 Since System F includes STLC, the proof given here can be viewed as a
 different way to prove a normalization property just for STLC (just
@@ -633,8 +634,8 @@ $\lambda$-abstraction, after instantiating its type variable $X$ with
 some large type.
 
 The method of defining a compositional interpretation of simple types in
-order to show normalization is due to Tait~\cite{tait67}.  It was extended by Girard
-to handle impredicative polymorphism~\cite{girard72}.  An accessible source
+order to show normalization is due to \citet{tait67}.  It was extended by Girard
+to handle impredicative polymorphism~\citep{girard72}.  An accessible source
 for Girard's proof is~\citet{girard1989}, which
 I recommend for learning more about these topics.
 
@@ -664,7 +665,7 @@ occur in the final term, but only under $\lambda$-abstractions.
 
 The new form of type is $\forall\, X.\,T$.  This is a polymorphic
 type, which intuitively means that for any type $T'$, $t$ can be typed
-with the instance $[T'/X]T$.  
+with the instance $[T'/X]T$.
 
 \subsection{Typing}
 
@@ -675,7 +676,7 @@ A typing context $\Gamma$ declares free term and type variables:
 We write $\Gamma(x) = T$ to mean looking up the first typing for $x$ in $\Gamma$,
 starting from the right.  The typing rules are in
 Figure~\ref{fig:tp}.  To ensure that types are well-formed, we
-use some extra rules, called \emph{kinding} rules, in Figure~\ref{fig:knd}.  
+use some extra rules, called \emph{kinding} rules, in Figure~\ref{fig:knd}.
 
 \begin{figure}
 \[
@@ -684,7 +685,7 @@ use some extra rules, called \emph{kinding} rules, in Figure~\ref{fig:knd}.
 \infer{\Gamma \vdash \lambda x . t : T \to T'}{\Gamma, x : T \vdash t : T'} &\ \ \ &
 \infer{\Gamma \vdash t\ t' : T_2}{\Gamma \vdash t : T_1 \to T_2 & \Gamma \vdash t' : T_1} \\ \\
 \infer{\Gamma \vdash t : \forall \,X.\,T}{\Gamma,X : \star \vdash t : T} &\ \ \ &
-\infer{\Gamma \vdash t : [T'/X]T}{\Gamma \vdash t : \forall\, X.\,T & \Gamma \vdash T' : \star} &\ \ \ &\ 
+\infer{\Gamma \vdash t : [T'/X]T}{\Gamma \vdash t : \forall\, X.\,T & \Gamma \vdash T' : \star} &\ \ \ &\
 \end{array}
 \]
 \caption{Typing rules for unannotated System F}
@@ -728,7 +729,7 @@ If $\Gamma \vdash t : T$ then $\Gamma \vdash T:\star$.
 Figure~\ref{fig:semtp} gives a compositional semantics
 $\interp{T}_\rho$ for types.  (This notation for semantic
 value is widely used in Logic, Linguistics, and Computer Science,
-and is due to Dana Scott~\cite{rabern2016}.) The function $\rho$ gives the
+and is due to Dana Scott~\citep{rabern2016}.) The function $\rho$ gives the
 interpretations of free type variables in $T$.  Each free type
 variable is interpreted as a \emph{reducibility candidate}, and we write
 $\rho$ only for functions mapping type variables $X$ to reducibility
@@ -776,7 +777,7 @@ of $\beta$-reduction).  The set of all reducibility candidates is denoted $\math
 \begin{array}{lll}
 \interp{X}_\rho & = & \rho(X) \\ \\
 \interp{T_1 \to T_2}_\rho & = & \{ t \in \mathcal{N}\ |\ \forall t'\in\interp{T_1}_\rho.\ t\ t'\in\interp{T_2}_\rho \} \\ \\
-\interp{\forall\, X.\,T}_\rho & = & \bigcap_{R\in\mathcal{R}} \interp{T}_{\rho[X\mapsto R]} 
+\interp{\forall\, X.\,T}_\rho & = & \bigcap_{R\in\mathcal{R}} \interp{T}_{\rho[X\mapsto R]}
 \end{array}
 \]
 \caption{Reducibility semantics for types}
@@ -875,11 +876,11 @@ If $\Gamma\vdash t : T$, then for all $(\sigma,\rho)\in\interp{\Gamma}$, we have
 \begin{proof}
 The proof is by induction on the structure of the assumed typing derivation.
 In each case, we will implicitly assume an arbitrary $(\sigma,\rho)\in\interp{\Gamma}$.
-Let us start with an easy case that shows the power of Tait's semantics for 
+Let us start with an easy case that shows the power of Tait's semantics for
 
 \underline{Case:}
 \[
-\infer{\Gamma \vdash t\ t' : T_2}{\Gamma \vdash t : T_1 \to T_2 & \Gamma \vdash t' : T_1} 
+\infer{\Gamma \vdash t\ t' : T_2}{\Gamma \vdash t : T_1 \to T_2 & \Gamma \vdash t' : T_1}
 \]
 By the IH, $\sigma t\in\interp{T_1 \to T_2}_\rho$ and $\sigma
 t'\in\interp{T_1}_\rho$.  By the semantics of arrow types, this
@@ -903,7 +904,7 @@ use the induction hypothesis to conclude $\sigma x\in\interp{T}_\rho$.
 
 \underline{Case:}
 \[
-\infer{\Gamma \vdash \lambda x . t : T \to T'}{\Gamma, x : T \vdash t : T'} 
+\infer{\Gamma \vdash \lambda x . t : T \to T'}{\Gamma, x : T \vdash t : T'}
 \]
 All closed $\lambda$-abstractions are in $\mathcal{N}$.  So to prove $(\lambda x.\sigma t) \in \interp{T\to T'}_\rho$, it suffices
 to assume an abitrary $t'\in\interp{T}_\rho$ and prove $(\lambda
@@ -917,7 +918,7 @@ t\in\interp{T'}_\rho$, as required.
 
 \underline{Case:}
 \[
-\infer{\Gamma \vdash t : \forall\, X.\,T}{\Gamma,X : \star \vdash t : T} 
+\infer{\Gamma \vdash t : \forall\, X.\,T}{\Gamma,X : \star \vdash t : T}
 \]
 We must prove $\sigma t\in\interp{\forall\, X.\,T}_\rho$.  By the
 semantics of universal types, it suffices to assume an arbitrary
@@ -928,7 +929,7 @@ Lemma~\ref{lem:ctxtext}.
 
 \underline{Case:}
 \[
-\infer{\Gamma \vdash t : [T'/X]T}{\Gamma \vdash t : \forall\, X.\,T & \Gamma \vdash T' : \star} 
+\infer{\Gamma \vdash t : [T'/X]T}{\Gamma \vdash t : \forall\, X.\,T & \Gamma \vdash T' : \star}
 \]
 By the IH, we know $\sigma t\in\interp{\forall\, X.\,T}_\rho$, which by the semantics
 of universal types is equivalent to
@@ -961,7 +962,7 @@ $\interp{[T'/X]T}_\rho = \interp{T}_{\rho[X\mapsto \interp{T'}_\rho]}$
 \end{proof}
 
 A type is called \textbf{inhabited} iff there is some term that can be assigned
-that type in the empty context.  
+that type in the empty context.
 
 \vspace{0.25cm}
 \begin{corollary}[Logical soundness]
@@ -975,7 +976,7 @@ that type in the empty context.
   This is because it is a subset of $\mathcal{N}$ and is trivially expansion-closed.  But then $t\in\emptyset$,
   which is impossible.
   \end{proof}
-  
+
 
 \bibliography{biblio}
 
@@ -985,9 +986,9 @@ that type in the empty context.
 \label{sec:tppres}
 
 The proof is
-  by induction on the structure of the derivation of $t \leadsto t'$.  
+  by induction on the structure of the derivation of $t \leadsto t'$.
 
-\ 
+\
 
 \noindent \underline{\textbf{Case:}}
 \[
@@ -1006,7 +1007,7 @@ we have must end with this inference:
 \noindent We may apply our induction hypothesis to the proof of $t_1\
 \leadsto\ t_1'$ and the proof in the first premise of this inference,
 to get:
-\[ 
+\[
 \Gamma \vdash t_1' : T_2\to T_1
 \]
 
@@ -1019,7 +1020,7 @@ to get:
 
 \noindent The case for the other application rule is similar, so we omit the details.
 
-\ 
+\
 
 \noindent \underline{\textbf{Case:}}
 \[
@@ -1030,7 +1031,7 @@ to get:
 to $\lambda\,x.\, t$.  Since there is only one typing rule that can type
 a $\lambda$-abstraction, we know that our assumed typing derviation must
 end in an inference of this form:
-\[ 
+\[
 \infer{\Gamma\vdash \lambda\,x.\,t : T_1 \to T_2}
       {\Gamma,x:T_1\vdash t:T_2}
 \]
@@ -1038,10 +1039,10 @@ end in an inference of this form:
 the premise of the reduction inference and the derivation in the premise
 of the typing inference, we obtain:
 
-\[ 
+\[
 \Gamma, x:T_1 \vdash t' : T_2
 \]
-       
+
 \noindent Now we may apply the rule for typing $\lambda$-abstractions get:
 
 \[
@@ -1050,20 +1051,20 @@ of the typing inference, we obtain:
 \]
 
 \noindent \underline{\textbf{Case:}}
-\[ 
+\[
 \betarule
 \]
 
 \noindent By similar reasoning about the possible form of the typing derivation, we may deduce
 it ends in this form:
 
-\[ 
+\[
 \infer{\Gamma \vdash (\lambda x.t)\ t' : T_1}
        {\infer{\Gamma \vdash (\lambda x.t) : T_2\to T_1}
               {\Gamma, x : T_2 \vdash t : T_1} & \Gamma \vdash t' : T_2}
 \]
 
-\noindent To complete this case, it suffices to apply 
+\noindent To complete this case, it suffices to apply
 Lemma~\ref{lem:stlcsubst} to the premises of the above derivation:
 \[
 \infer[\textit{Lemma}~\ref{lem:stlcsubst}]
@@ -1096,15 +1097,15 @@ $\Gamma_3$.
 \begin{proof}
 The proof is by induction on the structure of the assumed derivation.
 
-\ 
+\
 
 \noindent\underline{\textbf{Case:}}
 \[
-\infer{\Gamma_1,\Gamma_3\vdash x : T}{(\Gamma_1,\Gamma_3)(x) = T} 
+\infer{\Gamma_1,\Gamma_3\vdash x : T}{(\Gamma_1,\Gamma_3)(x) = T}
 \]
 \noindent We can use this inference:
 \[
-\infer{\Gamma_1,\Gamma_2,\Gamma_3\vdash x : T}{(\Gamma_1,\Gamma_2\Gamma_3)(x) = T} 
+\infer{\Gamma_1,\Gamma_2,\Gamma_3\vdash x : T}{(\Gamma_1,\Gamma_2\Gamma_3)(x) = T}
 \]
 
 \noindent\underline{\textbf{Case:}}
@@ -1137,11 +1138,11 @@ applications of the induction hypothesis \textit{IH} as inferences in a derivati
 \begin{proof}[Proof of Lemma~\ref{lem:stlcsubsta} (Substitution)]
 The proof is by induction on the structure of the first assumed derivation.
 
-\ 
+\
 
 \noindent \underline{\textbf{Case:}}
 \[
-\infer{\Gamma_1,y:T_b,\Gamma_2\vdash x : T_a}{\Gamma(x) = T_a} 
+\infer{\Gamma_1,y:T_b,\Gamma_2\vdash x : T_a}{\Gamma(x) = T_a}
 \]
 \noindent Here, $t_a = x$.  We must case split on whether or not $x =
 y$.  If so, then $[t_b/y]t_a = [t_b/y]y = t_b$, and $T_a = T_b$.  We
@@ -1154,7 +1155,7 @@ Lemma~\ref{lem:stlcweak} (Weakening) as part of the derivation:
 in $\Gamma_1,\Gamma_2$ since it is declared in $\Gamma = \Gamma_1,y:T_2,\Gamma_2$ and
 $x\neq y$:
 \[
-\infer{\Gamma_1,\Gamma_2\vdash x : T_a}{(\Gamma_1,\Gamma_2)(x) = T_a} 
+\infer{\Gamma_1,\Gamma_2\vdash x : T_a}{(\Gamma_1,\Gamma_2)(x) = T_a}
 \]
 
 \noindent \underline{\textbf{Case:}}
